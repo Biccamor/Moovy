@@ -2,7 +2,7 @@ from schemas.schemas import MovieSession
 from database.database_setup import Room_Session
 from uuid import uuid4, UUID
 import numpy as np
-from engine.vector import create_vector, hybrid_search
+from engine.vector import create_vector
 from engine.llm_decider import decide
 from engine.prompts import VIBE_MAP
 
@@ -165,9 +165,13 @@ class RecomService:
 
         group_genres = {}
         group_keywords = set()
+        all_hard_nos = set()
 
         users_info = ""
         for u in (db_session.preferences or []):
+            user_hard_nos = u.get("personal_vibe", {}).get("hard_nos", [])
+            all_hard_nos.update(user_hard_nos)
+
             vibes = u.get("personal_vibe", {}).get("vibes", [])
             if not vibes:
                 users_info += f"user: {u.get('user_name', 'unknown')} wants all kinds of movies\n"
@@ -197,5 +201,5 @@ class RecomService:
         all_genres = [g for g, _ in sorted(group_genres.items(), key=lambda x: x[1], reverse=True)]
         reranker_query = f"A {db_session.occasion} movie featuring genres: {', '.join(all_genres)}. Elements and vibes: {', '.join(group_keywords)}."
 
-        recommendations = await decide(session, vector, max_runtime, users_info, reranker_query)
+        recommendations = await decide(session, vector, max_runtime, users_info, reranker_query, hard_nos=list(all_hard_nos), limit_movies=75)
         return recommendations

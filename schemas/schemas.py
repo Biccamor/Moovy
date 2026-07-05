@@ -9,14 +9,14 @@ VibeType = Literal["PIZZA_CHILL", "MIND_BENDER", "ADRENALINE", "DATE_NIGHT", "DE
 
 class Preferences(BaseModel): #podawane przy nowym requescie/sesji
     vibes: List[VibeType] = Field(default_factory=list, max_length=12)
-    hard_nos: List[VibeType] = Field(default_factory=list, max_length=12)
+    hard_nos: List[str] = Field(default_factory=list, max_length=12)
     max_runtime: int = Field(default=120, ge=30, le=240)
     allow_seen: bool = False
     eras: List[str] = Field(default_factory=list, max_length=10)
 
 class SavedPreferences(BaseModel): #jednorazowo podane przy rejestracji
     vibes: List[VibeType] = Field(default_factory=list)
-    hard_nos: List[VibeType] = Field(default_factory=list)
+    hard_nos: List[str] = Field(default_factory=list)
     eras: List[str] = Field(default_factory=list)
     movies: List[str] = Field(default_factory=list)
 

@@ -47,9 +47,9 @@ class MovieRecommendation(BaseModel):
     runtime: Optional[int] = None
     rating: Optional[float] = None
 
-async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: str, rating_weight: float = 0.25, limit_movies: int = 75):
+async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: str, hard_nos: list[str] | None = None, rating_weight: float = 0.25, limit_movies: int = 75):
     t1 = time.perf_counter()
-    top_search = await hybrid_search(query, runtime, session, rating_weight, limit_movies)
+    top_search = await hybrid_search(query, runtime, session, hard_nos, rating_weight, limit_movies)
     t2 = time.perf_counter()
     logger.info(f"hybrid serach took {t2-t1}")
     rerank = await reranker(reranker_query, top_search, limit_movies=20)
