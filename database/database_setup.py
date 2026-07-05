@@ -4,7 +4,10 @@ from sqlalchemy import UniqueConstraint
 from uuid import UUID, uuid4
 from pgvector.sqlalchemy import Vector
 from datetime import date
-from typing import Literal
+from pydantic import field_validator
+from schemas.schemas import INTERACTION_STATUSES
+
+
 
 class User(SQLModel, table=True):
     """
@@ -99,4 +102,12 @@ class User_Interaction(SQLModel, table=True):
     interaction_id: UUID = Field(default_factory=uuid4, primary_key=True)
     user_id: UUID = Field(foreign_key="app_user.user_id", index=True)
     movie_id: UUID = Field(foreign_key="movie.movie_id", index=True)
-    status: Literal["DISLIKE", "LIKE", "NEUTRAL", "LOVE", "HATE", "WATCHED"] = Field(default="NEUTRAL", index=True)
+    status: str = Field(default="NEUTRAL", index=True)  # DISLIKE / LIKE / NEUTRAL / LOVE / HATE / WATCHED
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        v = v.upper().strip()
+        if v not in INTERACTION_STATUSES:
+            raise ValueError(f"Invalid status '{v}'. Must be one of: {INTERACTION_STATUSES}")
+        return v

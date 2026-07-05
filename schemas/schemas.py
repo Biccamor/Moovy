@@ -7,6 +7,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 VibeType = Literal["PIZZA_CHILL", "MIND_BENDER", "ADRENALINE", "DATE_NIGHT", "DEEP_FEELS", "LAUGH_RIOT", "SPINE_CHILLING", 
                    "FAMILY_FUN", "INSPIRING", "EPIC_JOURNEY", "GUILTY_PLEASURE", "AMBITIOUS"]
 
+INTERACTION_STATUSES: list[str] = ["LIKE", "DISLIKE", "LOVE", "NEUTRAL", "HATE", "WATCHED"]
+
+
 class Preferences(BaseModel): #podawane przy nowym requescie/sesji
     vibes: List[VibeType] = Field(default_factory=list, max_length=12)
     hard_nos: List[str] = Field(default_factory=list, max_length=12)
