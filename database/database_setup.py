@@ -19,7 +19,8 @@ class User(SQLModel, table=True):
     email: str = Field(unique=True, index=True)
     hash_password: str
 
-    user_taste: list[float] | None = Field(sa_column=Column(Vector(768)), default=None) # coming soon
+    taste_positive: list[float] | None = Field(sa_column=Column(Vector(768)), default=None)
+    taste_negative: list[float] | None = Field(sa_column=Column(Vector(768)), default=None)
     saved_preferences: dict | None = Field(default_factory=dict, sa_column=Column(JSONB))
     history: list[float] | None = Field(sa_column=Column(Vector(768), default=None))
 
