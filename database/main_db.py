@@ -23,4 +23,5 @@ def get_session():
         yield session
 
 if __name__ == "__main__":
+    d.load_db()
     create_tables()

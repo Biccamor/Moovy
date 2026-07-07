@@ -54,3 +54,6 @@ async def get_preferences(request: Request, user_id: UUID, user_token: dict = De
     
     return user.saved_preferences or {}
 
+
+@router.post("/favourite", summary="Add favourite movies to db")
+async def add_favourites(request: Request, user_id: UUID, user_token: dict = Depends(get_current_user), session = Depends(get_session))
