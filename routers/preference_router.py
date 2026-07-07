@@ -3,10 +3,10 @@ from schemas.schemas import SavedPreferences
 from scripts.security import get_current_user
 from sqlmodel import select
 from database.main_db import get_session
-from database.database_setup import User
+from database.database_setup import User, Movie
 from uuid import UUID
 from scripts.dependencies import limiter
-
+import numpy as np 
 
 router = APIRouter(prefix="/preferences", tags=['preferences'])
 
@@ -53,4 +53,53 @@ async def get_preferences(request: Request, user_id: UUID, user_token: dict = De
         )
     
     return user.saved_preferences or {}
+
+@router.post("/favourite", summary="Add favourite movies to db")
+@limiter.limit("1/minute")
+async def add_favourites(request: Request, favourites_id: list[int], user_id: UUID, user_token: dict = Depends(get_current_user), session = Depends(get_session)):
+
+    if len(favourites_id) > 5: 
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="You can't add more than 5 favourites"
+        )
+
+    if str(user_id) != str(user_token["user_id"]):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can't change other user"
+        )
+
+    user = session.exec(select(User).where(User.user_id == user_id)).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+
+    for tmdb_id in favourites_id: 
+
+        movie = session.exec(select(Movie).where(tmdb_id==Movie.tmdb_id)).first()
+
+        if not movie: 
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Movie not found" 
+            )
+
+        vector = movie.embedding 
+        if not vector: 
+            continue 
+
+        if user.taste_positive is None: 
+            user.taste_positive = vector
+            continue
+
+        user.taste_positive = np.add(user.taste_positive, vector).tolist()
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    
+    return {"message": "Favourites saved", "user_id": user.user_id}
 
