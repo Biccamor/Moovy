@@ -1,5 +1,5 @@
 # pyrefly: ignore [missing-import]
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlmodel import select
 from database.database_setup import Movie
 from scripts.security import get_current_user
@@ -14,9 +14,11 @@ def _escape_like(value: str) -> str:
 
 
 router = APIRouter()
-@limiter.limit("30/minute")
+
 @router.get("/movies/search", summary="Search for favourite movies")
+@limiter.limit("30/minute")
 async def search(
+    request: Request,
     title: str = Query(..., min_length=1, max_length=200, description="Movie title to search for"),
     limit: int = Query(default=10, ge=1, le=50, description="Max number of results (1-50)"),
     user: dict = Depends(get_current_user),
