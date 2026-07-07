@@ -77,6 +77,7 @@ async def add_favourites(request: Request, favourites_id: list[int], user_id: UU
             detail="User not found"
         )
 
+    user_positive_vector = user.taste_positive
 
     for tmdb_id in favourites_id: 
 
@@ -92,11 +93,17 @@ async def add_favourites(request: Request, favourites_id: list[int], user_id: UU
         if not vector: 
             continue 
 
-        if user.taste_positive is None: 
-            user.taste_positive = vector
+        if user_positive_vector is None: 
+            user_positive_vector = vector
             continue
 
-        user.taste_positive = np.add(user.taste_positive, vector).tolist()
+        user_positive_vector = np.add(user_positive_vector, vector) 
+    
+    if user_positive_vector is not None:
+        norm = np.linalg.norm(user_positive_vector)
+        if norm > 0:
+            user.taste_positive = (user_positive_vector / norm).tolist()    
+    
     session.add(user)
     session.commit()
     session.refresh(user)
