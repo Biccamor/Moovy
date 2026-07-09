@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Session, text
 import scripts.dependencies as d 
-from database.database_setup import Movie, User, Room_Session, Rating, MovieSessionDB
+from database.database_setup import Movie, User, Room_Session, Rating, MovieSessionDB, User_Interaction
 def create_tables():    
     with d.engine.connect() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))

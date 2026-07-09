@@ -37,8 +37,4 @@ async def search(
         }
         for movie in results
     ]
-
-
-@router.post("/rate", summary="Rate movie")
-@limiter.limit("30/minute")
-async def rating(request:Request, user: dict = Depends(get_current_user), session = Depends(get_session))
+
