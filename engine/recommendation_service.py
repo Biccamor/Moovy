@@ -201,5 +201,5 @@ class RecomService:
         all_genres = [g for g, _ in sorted(group_genres.items(), key=lambda x: x[1], reverse=True)]
         reranker_query = f"A {db_session.occasion} movie featuring genres: {', '.join(all_genres)}. Elements and vibes: {', '.join(group_keywords)}."
 
-        recommendations = await decide(session, vector, max_runtime, users_info, reranker_query, hard_nos=list(all_hard_nos), limit_movies=75)
+        recommendations = await decide(session, vector, max_runtime, users_info, reranker_query, hard_nos=list(all_hard_nos),user_list =  self.user_list, limit_movies=75)
         return recommendations
