@@ -25,9 +25,9 @@ class User(SQLModel, table=True):
     taste_positive: list[float] | None = Field(sa_column=Column(Vector(768)), default=None)
     taste_negative: list[float] | None = Field(sa_column=Column(Vector(768)), default=None)
     saved_preferences: dict | None = Field(default_factory=dict, sa_column=Column(JSONB))
-    history: list[float] | None = Field(sa_column=Column(Vector(768), default=None))
     positive_count: int = Field(default=0)    # ile filmów w taste_positive
     negative_count: int = Field(default=0)    # ile filmów w taste_negative
+    
 
 class Movie(SQLModel, table=True):
 

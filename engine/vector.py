@@ -1,4 +1,4 @@
-from database.database_setup import Movie
+from database.database_setup import Movie, User_Interaction
 from sqlmodel import select,cast,String,text    
 from sqlalchemy.dialects.postgresql import JSONB
 from flashrank import RerankRequest
@@ -33,7 +33,7 @@ async def reranker(prompt, top_movies: list, limit_movies:int = 25):
     reranked = [top_movies[r["id"]] for r in results[:limit_movies]] # bierzemy z top movies topowe filmy wedlug rerankera wiec jest tam poster_path etc
     return reranked
 
-async def hybrid_search(query_vector: list[float], max_runtime: int, session, hard_nos: list[str] | None = None, rating_weight: float = 0.15, limit_movies: int = 50) -> list:
+async def hybrid_search(query_vector: list[float], max_runtime: int, session, user_list, hard_nos: list[str] | None = None, rating_weight: float = 0.15, limit_movies: int = 50) -> list:
     
 
     # HNSW ef_search — wyższy = dokładniejszy ale wolniejszy (default 40, max 1000)
@@ -44,6 +44,19 @@ async def hybrid_search(query_vector: list[float], max_runtime: int, session, ha
 
     hybrid_score = (Movie.embedding.cosine_distance(query_vector) + (rating_weight * rating_penalty)).label("score") # type: ignore
 
+    def get_banned_ids(user_list, session) -> set:
+        if not user_list:
+            return set()
+        user_ids = [u.user_id for u in user_list]
+        movie_ids = session.exec(
+            select(User_Interaction.movie_id).where(
+                User_Interaction.user_id.in_(user_ids)
+            )
+        ).all()
+        return set(movie_ids)
+    
+    banned = get_banned_ids(user_list, session)
+
     statement = (
         select(Movie, hybrid_score)
         .order_by(hybrid_score)
@@ -53,7 +66,8 @@ async def hybrid_search(query_vector: list[float], max_runtime: int, session, ha
     if hard_nos:
         for genre in hard_nos:
             statement = statement.where(~cast(Movie.genre, JSONB).contains([genre]))
-
+    if banned:
+        statement = statement.where(Movie.movie_id.not_in(banned))
     statement = statement.limit(limit_movies)
 
         
