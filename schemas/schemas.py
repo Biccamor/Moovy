@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 VibeType = Literal["PIZZA_CHILL", "MIND_BENDER", "ADRENALINE", "DATE_NIGHT", "DEEP_FEELS", "LAUGH_RIOT", "SPINE_CHILLING", 
                    "FAMILY_FUN", "INSPIRING", "EPIC_JOURNEY", "GUILTY_PLEASURE", "AMBITIOUS"]
 
-INTERACTION_STATUSES: list[str] = ["LIKE", "DISLIKE", "LOVE", "NEUTRAL", "HATE", "WATCHED"]
+INTERACTION_STATUSES: list[str] = ["LIKE", "DISLIKE", "LOVE", "NEUTRAL", "HATE", "WATCHED", "WATCHLIST"]
 
 class RateRequest(BaseModel):
     """Request body for rating a movie."""
@@ -15,7 +15,7 @@ class RateRequest(BaseModel):
     status: str = Field(
         ...,
         description="Rating status: LOVE, LIKE, DISLIKE, or HATE",
-        pattern="^(LOVE|LIKE|DISLIKE|HATE)$",
+        pattern="^(LOVE|LIKE|DISLIKE|HATE|WATCHED|WATCHLIST)$",
     )
 
 

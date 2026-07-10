@@ -15,6 +15,7 @@ WEIGHTS = {
     "LIKE": ("positive", 0.5),
     "HATE": ("negative", 1.0),
     "DISLIKE": ("negative", 0.5),
+    "WATCHLIST": ("neutral", 0.0)
 }
 
 
@@ -47,6 +48,9 @@ def _remove_old_rating(user, embedding, old_status):
     if old_status not in WEIGHTS:
         return
     side, weight = WEIGHTS[old_status]
+    if side == "neutral":
+        return
+        
     if side == "positive":
         user.taste_positive, user.positive_count = _reverse_update(
             user.taste_positive, user.positive_count, embedding, weight
@@ -59,7 +63,13 @@ def _remove_old_rating(user, embedding, old_status):
 
 def _apply_new_rating(user, embedding, new_status):
     """Dodaje wpływ nowego ratingu na wektor taste."""
+    if new_status not in WEIGHTS:
+        return
+        
     side, weight = WEIGHTS[new_status]
+    if side == "neutral":
+        return
+        
     if side == "positive":
         user.taste_positive = _incremental_update(
             user.taste_positive, user.positive_count, embedding, weight
@@ -178,6 +188,36 @@ async def get_rating_history(
             "title": movie.title,
             "poster_path": movie.poster_path,
             "status": interaction.status,
+        }
+        for interaction, movie in results
+    ]
+
+@router.get("/watchlist", summary="Get user's watchlist")
+@limiter.limit("30/minute")
+async def get_watchlist(
+    request: Request,
+    user_token: dict = Depends(get_current_user),
+    session=Depends(get_session),
+):
+    user_id = user_token["user_id"]
+
+    results = session.exec(
+        select(User_Interaction, Movie)
+        .join(Movie, User_Interaction.movie_id == Movie.movie_id)
+        .where(
+            User_Interaction.user_id == user_id,
+            User_Interaction.status == "WATCHLIST"
+        )
+    ).all()
+
+    return [
+        {
+            "movie_id": str(interaction.movie_id),
+            "title": movie.title,
+            "poster_path": movie.poster_path,
+            "runtime": movie.runtime,
+            "genre": movie.genre,
+            "release_date": movie.release_date
         }
         for interaction, movie in results
     ]
