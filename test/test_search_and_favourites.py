@@ -188,6 +188,7 @@ class TestAddFavourites:
 
         # Pierwsze .first() → user, drugie .first() → movie
         mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie]
+        mock_np.linalg.norm.return_value = 1.0
 
         response = client.post(
             "/preferences/favourite",
@@ -214,6 +215,7 @@ class TestAddFavourites:
 
         mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie]
         mock_np.add.return_value.tolist.return_value = [0.6] * 768
+        mock_np.linalg.norm.return_value = 1.0
 
         response = client.post(
             "/preferences/favourite",
@@ -341,6 +343,7 @@ class TestAddFavourites:
         # user + 5x movie
         mock_db.exec.return_value.first.side_effect = [mock_user] + [mock_movie] * 5
         mock_np.add.return_value.tolist.return_value = [0.5] * 768
+        mock_np.linalg.norm.return_value = 1.0
 
         response = client.post(
             "/preferences/favourite",
