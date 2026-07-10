@@ -67,7 +67,7 @@ async def hybrid_search(query_vector: list[float], max_runtime: int, session, us
         for genre in hard_nos:
             statement = statement.where(~cast(Movie.genre, JSONB).contains([genre]))
     if banned:
-        statement = statement.where(Movie.movie_id.not_in(banned))
+        statement = statement.where(Movie.movie_id.notin_(banned))
     statement = statement.limit(limit_movies)
 
         

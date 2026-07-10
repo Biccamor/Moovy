@@ -100,9 +100,10 @@ async def add_favourites(request: Request, favourites_id: list[int], user_id: UU
         user_positive_vector = np.add(user_positive_vector, vector) 
     
     if user_positive_vector is not None:
-        norm = np.linalg.norm(user_positive_vector)
+        arr = np.array(user_positive_vector)
+        norm = np.linalg.norm(arr)
         if norm > 0:
-            user.taste_positive = (user_positive_vector / norm).tolist()    
+            user.taste_positive = (arr / norm).tolist()    
     
     session.add(user)
     session.commit()
