@@ -22,6 +22,25 @@ async def get_preferences_options():
         "EPIC_JOURNEY",
         "GUILTY_PLEASURE"
     ]
+
+    vibe_colors = {
+        "AMBITIOUS": "rgb(10, 75, 92)",
+        "PIZZA_CHILL": "rgb(224, 117, 43)",
+        "MIND_BENDER": "rgb(112, 41, 184)",
+        "ADRENALINE": "rgb(221, 28, 28)",
+        "DATE_NIGHT": "rgb(194, 46, 108)",
+        "DEEP_FEELS": "rgb(23, 42, 87)",
+        "LAUGH_RIOT": "rgb(245, 199, 25)",
+        "SPINE_CHILLING": "rgb(46, 64, 51)",
+        "FAMILY_FUN": "rgb(38, 153, 224)",
+        "INSPIRING": "rgb(227, 172, 54)",
+        "EPIC_JOURNEY": "rgb(161, 113, 66)",
+        "GUILTY_PLEASURE": "rgb(240, 98, 146)",
+    }
+
+    for vibe in vibes:
+        if vibe not in vibe_colors:
+            vibe_colors[vibe] = "rgb(0,0,0)"
     
     eras = [
         'Klasyka (przed 80.)',
@@ -34,7 +53,8 @@ async def get_preferences_options():
     
     return {
         "vibes": vibes,
-        "eras": eras
+        "eras": eras,
+        "colors": vibe_colors
     }
 
 
