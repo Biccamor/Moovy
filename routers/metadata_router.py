@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from schemas.schemas import INTERACTION_STATUSES
 
 router = APIRouter(prefix="/metadata", tags=["Metadata"])
 
@@ -35,3 +36,12 @@ async def get_preferences_options():
         "vibes": vibes,
         "eras": eras
     }
+
+
+@router.get("/interaction-statuses", summary="Available interaction statuses for movie buttons")
+async def get_interaction_statuses():
+    """
+    Returns the list of valid interaction statuses.
+    Frontend should use these as the only allowed button values.
+    """
+    return {"statuses": INTERACTION_STATUSES}

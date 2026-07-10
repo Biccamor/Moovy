@@ -300,6 +300,16 @@ SCENARIOS = [
             ], max_runtime=240, allow_seen=True),
         ],
     },
+    {
+        # 21. Normalizacja test - 2 osoby: jedna guilty pleasure, druga 4 vibes thriller/horror
+        "name": "normalization_guilty_vs_thriller",
+        "description": "2 osoby: jedna chce tylko GUILTY_PLEASURE, druga 4 vibes thriller/horror (SPINE_CHILLING, MIND_BENDER, ADRENALINE, AMBITIOUS). Testuje czy normalizacja wektora zapobiega dominacji preferencji drugiej osoby.",
+        "meeting_type": "RANDKA",
+        "users": [
+            _user("GuiltyUser", vibes=["GUILTY_PLEASURE"]),
+            _user("ThrillerUser", vibes=["SPINE_CHILLING", "MIND_BENDER", "ADRENALINE", "AMBITIOUS"]),
+        ],
+    },
 ]
 
 

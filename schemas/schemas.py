@@ -7,16 +7,28 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 VibeType = Literal["PIZZA_CHILL", "MIND_BENDER", "ADRENALINE", "DATE_NIGHT", "DEEP_FEELS", "LAUGH_RIOT", "SPINE_CHILLING", 
                    "FAMILY_FUN", "INSPIRING", "EPIC_JOURNEY", "GUILTY_PLEASURE", "AMBITIOUS"]
 
+INTERACTION_STATUSES: list[str] = ["LIKE", "DISLIKE", "LOVE", "NEUTRAL", "HATE", "WATCHED"]
+
+class RateRequest(BaseModel):
+    """Request body for rating a movie."""
+    movie_id: UUID
+    status: str = Field(
+        ...,
+        description="Rating status: LOVE, LIKE, DISLIKE, or HATE",
+        pattern="^(LOVE|LIKE|DISLIKE|HATE)$",
+    )
+
+
 class Preferences(BaseModel): #podawane przy nowym requescie/sesji
     vibes: List[VibeType] = Field(default_factory=list, max_length=12)
-    hard_nos: List[VibeType] = Field(default_factory=list, max_length=12)
+    hard_nos: List[str] = Field(default_factory=list, max_length=12)
     max_runtime: int = Field(default=120, ge=30, le=240)
     allow_seen: bool = False
     eras: List[str] = Field(default_factory=list, max_length=10)
 
 class SavedPreferences(BaseModel): #jednorazowo podane przy rejestracji
     vibes: List[VibeType] = Field(default_factory=list)
-    hard_nos: List[VibeType] = Field(default_factory=list)
+    hard_nos: List[str] = Field(default_factory=list)
     eras: List[str] = Field(default_factory=list)
     movies: List[str] = Field(default_factory=list)
 

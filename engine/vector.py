@@ -1,10 +1,12 @@
 from database.database_setup import Movie, User_Interaction
 from uuid import UUID
 from sqlmodel import select,cast,String,text    
+from sqlalchemy.dialects.postgresql import JSONB
 from flashrank import RerankRequest
 import scripts.dependencies as d
 import asyncio
 from sqlalchemy import case 
+
 async def create_vector(prompt: list | str):
     # SentenceTransformer.encode() zwraca numpy array bezpośrednio (nie dict jak BGEM3FlagModel)
     result = await asyncio.to_thread(
@@ -33,7 +35,7 @@ async def reranker(prompt, top_movies: list, limit_movies:int = 25):
     reranked = [top_movies[r["id"]] for r in results[:limit_movies]] # bierzemy z top movies topowe filmy wedlug rerankera wiec jest tam poster_path etc
     return reranked
 
-async def hybrid_search(query_vector: list[float], max_runtime: int, session, allow_seen_dict: dict | None = None, rating_weight: float = 0.15, limit_movies: int = 50) -> list:
+async def hybrid_search(query_vector: list[float], max_runtime: int, session, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.15, limit_movies: int = 50) -> list:
     
 
     # HNSW ef_search — wyższy = dokładniejszy ale wolniejszy (default 40, max 1000)
@@ -47,19 +49,28 @@ async def hybrid_search(query_vector: list[float], max_runtime: int, session, al
     statement = (
         select(Movie, hybrid_score)
         .order_by(hybrid_score)
-        .where(Movie.runtime <= max_runtime) # type: ignore
+        .where(Movie.runtime <= max_runtime )
     )
 
+    if hard_nos:
+        for genre in hard_nos:
+            statement = statement.where(~cast(Movie.genre, JSONB).contains([genre]))
+
+    banned_users = []
     if allow_seen_dict:
         # szukamy UUID userów, którzy NIE pozwalają na widziane filmy
         banned_users = [UUID(uid) for uid, data in allow_seen_dict.items() if not data.get("allow_seen", False)]
-        if banned_users:
-            banned_movie_ids = session.exec(
-                select(User_Interaction.movie_id)
-                .where(User_Interaction.user_id.in_(banned_users))
-            ).all()
-            if banned_movie_ids:
-                statement = statement.where(Movie.movie_id.notin_(set(banned_movie_ids)))
+    else:
+        # jeśli brak dict, banujemy dla wszystkich u których sprawdzamy (domyślne zachowanie)
+        banned_users = [u.user_id for u in user_list] if user_list else []
+        
+    if banned_users:
+        banned_movie_ids = session.exec(
+            select(User_Interaction.movie_id)
+            .where(User_Interaction.user_id.in_(banned_users))
+        ).all()
+        if banned_movie_ids:
+            statement = statement.where(Movie.movie_id.notin_(set(banned_movie_ids)))
 
     statement = statement.limit(limit_movies)
         

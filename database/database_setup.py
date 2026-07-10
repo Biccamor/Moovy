@@ -4,6 +4,10 @@ from sqlalchemy import UniqueConstraint
 from uuid import UUID, uuid4
 from pgvector.sqlalchemy import Vector
 from datetime import date
+from pydantic import field_validator
+from schemas.schemas import INTERACTION_STATUSES
+
+
 
 class User(SQLModel, table=True):
     """
@@ -18,8 +22,12 @@ class User(SQLModel, table=True):
     email: str = Field(unique=True, index=True)
     hash_password: str
 
-    user_taste: list[float] | None = Field(sa_column=Column(Vector(768)), default=None) # coming soon
+    taste_positive: list[float] | None = Field(sa_column=Column(Vector(768)), default=None)
+    taste_negative: list[float] | None = Field(sa_column=Column(Vector(768)), default=None)
     saved_preferences: dict | None = Field(default_factory=dict, sa_column=Column(JSONB))
+    positive_count: int = Field(default=0)    # ile filmów w taste_positive
+    negative_count: int = Field(default=0)    # ile filmów w taste_negative
+    
 
 class Movie(SQLModel, table=True):
 
@@ -90,3 +98,19 @@ class MovieSessionDB(SQLModel, table=True):
 
     room_session_id: UUID | None = Field(default=None, foreign_key="room_session.session_id")
     created_at: date | None = Field(default_factory=date.today)
+
+class User_Interaction(SQLModel, table=True):
+    __tablename__ = "user_interaction" # type: ignore
+    __table_args__ = (UniqueConstraint("user_id", "movie_id"),)
+    interaction_id: UUID = Field(default_factory=uuid4, primary_key=True)
+    user_id: UUID = Field(foreign_key="app_user.user_id", index=True)
+    movie_id: UUID = Field(foreign_key="movie.movie_id", index=True)
+    status: str = Field(default="NEUTRAL", index=True)  # DISLIKE / LIKE / NEUTRAL / LOVE / HATE / WATCHED
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        v = v.upper().strip()
+        if v not in INTERACTION_STATUSES:
+            raise ValueError(f"Invalid status '{v}'. Must be one of: {INTERACTION_STATUSES}")
+        return v
