@@ -4,7 +4,8 @@ from routers.auth_router import router as auth_router
 from routers.metadata_router import router as metadata_router
 from routers.preference_router import router as preference_router
 from routers.session_router import router as session_router
-from routers.search_router import router as search_router
+from routers.movies_router import router as search_router
+from routers.rating_router import router as rating_router
 import time
 import logging
 from fastapi.middleware.cors import CORSMiddleware
@@ -69,6 +70,7 @@ app.include_router(metadata_router)
 app.include_router(preference_router)
 app.include_router(session_router)
 app.include_router(search_router)
+app.include_router(rating_router)
 
 @app.get("/health")
 async def health():

@@ -1,10 +1,11 @@
 from schemas.schemas import MovieSession
-from database.database_setup import Room_Session
+from database.database_setup import Room_Session, User
 from uuid import uuid4, UUID
 import numpy as np
 from engine.vector import create_vector
 from engine.llm_decider import decide
 from engine.prompts import VIBE_MAP
+from sqlmodel import select
 
 class RecomService:
 
@@ -201,5 +202,10 @@ class RecomService:
         all_genres = [g for g, _ in sorted(group_genres.items(), key=lambda x: x[1], reverse=True)]
         reranker_query = f"A {db_session.occasion} movie featuring genres: {', '.join(all_genres)}. Elements and vibes: {', '.join(group_keywords)}."
 
-        recommendations = await decide(session, vector, max_runtime, users_info, reranker_query, hard_nos=list(all_hard_nos), limit_movies=75)
+
+
+        user_ids = [UUID(uid) for uid in (db_session.users_in_session or [])]
+        user_list = session.exec(select(User).where(User.user_id.in_(user_ids))).all() if user_ids else []
+
+        recommendations = await decide(session, vector, max_runtime, users_info, reranker_query, hard_nos=list(all_hard_nos), user_list=user_list, limit_movies=85)
         return recommendations

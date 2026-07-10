@@ -8,6 +8,7 @@ import os
 import time, random
 import logging
 from openai import AsyncOpenAI 
+from engine.taste_reranker import fusion_ranker
 
 logger = logging.getLogger(__name__)
 client = AsyncOpenAI(base_url="https://api.groq.com/openai/v1", api_key=os.getenv("GROQ_API_KEY"))
@@ -47,15 +48,16 @@ class MovieRecommendation(BaseModel):
     runtime: Optional[int] = None
     rating: Optional[float] = None
 
-async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: str, hard_nos: list[str] | None = None, rating_weight: float = 0.25, limit_movies: int = 75):
+async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: str,user_list, hard_nos: list[str] | None = None, rating_weight: float = 0.25, limit_movies: int = 75):
     t1 = time.perf_counter()
     top_search = await hybrid_search(query, runtime, session, hard_nos, rating_weight, limit_movies)
     t2 = time.perf_counter()
     logger.info(f"hybrid serach took {t2-t1}")
-    rerank = await reranker(reranker_query, top_search, limit_movies=20)
+    rerank = await reranker(reranker_query, top_search, limit_movies=35)
     t3 = time.perf_counter()
     logger.info(f"rerank took {t3-t2}")
-    
+    taste_ranked = fusion_ranker(user_list, rerank, limit_movies=15, alpha=0.3)
+
     if not rerank:
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Brak filmów spełniających kryteria, spróbuj np. zwiększyć maksymalny czas trwania.")

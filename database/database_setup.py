@@ -26,6 +26,8 @@ class User(SQLModel, table=True):
     taste_negative: list[float] | None = Field(sa_column=Column(Vector(768)), default=None)
     saved_preferences: dict | None = Field(default_factory=dict, sa_column=Column(JSONB))
     history: list[float] | None = Field(sa_column=Column(Vector(768), default=None))
+    positive_count: int = Field(default=0)    # ile filmów w taste_positive
+    negative_count: int = Field(default=0)    # ile filmów w taste_negative
 
 class Movie(SQLModel, table=True):
 
@@ -99,6 +101,7 @@ class MovieSessionDB(SQLModel, table=True):
 
 class User_Interaction(SQLModel, table=True):
     __tablename__ = "user_interaction" # type: ignore
+    __table_args__ = (UniqueConstraint("user_id", "movie_id"),)
     interaction_id: UUID = Field(default_factory=uuid4, primary_key=True)
     user_id: UUID = Field(foreign_key="app_user.user_id", index=True)
     movie_id: UUID = Field(foreign_key="movie.movie_id", index=True)
@@ -110,4 +113,4 @@ class User_Interaction(SQLModel, table=True):
         v = v.upper().strip()
         if v not in INTERACTION_STATUSES:
             raise ValueError(f"Invalid status '{v}'. Must be one of: {INTERACTION_STATUSES}")
-        return v
+        return v

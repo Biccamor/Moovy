@@ -9,6 +9,15 @@ VibeType = Literal["PIZZA_CHILL", "MIND_BENDER", "ADRENALINE", "DATE_NIGHT", "DE
 
 INTERACTION_STATUSES: list[str] = ["LIKE", "DISLIKE", "LOVE", "NEUTRAL", "HATE", "WATCHED"]
 
+class RateRequest(BaseModel):
+    """Request body for rating a movie."""
+    movie_id: UUID
+    status: str = Field(
+        ...,
+        description="Rating status: LOVE, LIKE, DISLIKE, or HATE",
+        pattern="^(LOVE|LIKE|DISLIKE|HATE)$",
+    )
+
 
 class Preferences(BaseModel): #podawane przy nowym requescie/sesji
     vibes: List[VibeType] = Field(default_factory=list, max_length=12)
