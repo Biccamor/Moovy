@@ -31,10 +31,25 @@ async def get_preferences_options():
         'Lata 10.',
         'Nowości (Lata 20.)'
     ]
+    vibe_colors_tuple = {
+    "AMBITIOUS": (10, 75, 92),
+    "PIZZA_CHILL": (224, 117, 43),
+    "MIND_BENDER": (112, 41, 184),
+    "ADRENALINE": (221, 28, 28),
+    "DATE_NIGHT": (194, 46, 108),
+    "DEEP_FEELS": (23, 42, 87),
+    "LAUGH_RIOT": (245, 199, 25),
+    "SPINE_CHILLING": (46, 64, 51),
+    "FAMILY_FUN": (38, 153, 224),
+    "INSPIRING": (227, 172, 54),
+    "EPIC_JOURNEY": (161, 113, 66),
+    "GUILTY_PLEASURE": (240, 98, 146),
+}
     
     return {
         "vibes": vibes,
-        "eras": eras
+        "eras": eras,
+        "vibe_colors": vibe_colors_tuple
     }
 
 
