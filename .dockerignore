@@ -33,10 +33,10 @@ compose*.yaml
 .dockerignore
 
 # Dev-only files
-requirements-dev.txt
 test/
 TODO.md
 README.md
 LICENSE.md
 *.txt
 !requirements.txt
+!requirements-dev.txt
