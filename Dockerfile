@@ -40,3 +40,17 @@ USER appuser
 EXPOSE 8010
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8010"]
+
+# ============================================
+# Stage 3: Dev — runtime + dev tools (CI/local)
+# ============================================
+FROM runtime AS dev
+
+USER root
+
+COPY ./requirements-dev.txt /app/requirements-dev.txt
+RUN pip install --no-cache-dir -r /app/requirements-dev.txt
+
+USER appuser
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8010", "--reload"]

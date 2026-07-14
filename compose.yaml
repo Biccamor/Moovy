@@ -21,7 +21,7 @@ services:
   app:
     build:
       context: .
-      target: runtime
+      target: dev
       cache_from:
         - type=gha
       cache_to:
