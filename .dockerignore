@@ -1,23 +1,42 @@
+# Environment & secrets
 .env
 
+# Database volumes
 postgres/
 postgres_data/
 
+# Python caches
 __pycache__/
-.pytext_cache/
-
+.pytest_cache/
 *.py[cod]
 *$py.class
 *.so
 
+# IDE
 .vscode/
 .idea/
 
+# Virtual envs
 venv/
 env/
 .venv/
 movieNight/
 
-
-.gitignore
+# Git
 .git/
+.gitignore
+.github/
+
+# Docker (prevent recursive context)
+Dockerfile
+compose*.yaml
+.dockerignore
+
+# Dev-only files
+requirements-dev.txt
+test/
+TODO.md
+README.md
+LICENSE.md
+*.txt
+!requirements.txt

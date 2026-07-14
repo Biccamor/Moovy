@@ -17,20 +17,21 @@ services:
       timeout: 5s
       retries: 5
       start_period: 15s
+
   app:
     build:
       context: .
+      target: runtime
       cache_from:
-        - type=gha 
-      cache_to: 
+        - type=gha
+      cache_to:
         - type=gha,mode=max
     container_name: app
     env_file:
       - .env
-
     environment:
-        HF_HUB_DOWNLOAD_TIMEOUT: 60
-        WATCHFILES_FORCE_POLLING: "true"
+      HF_HUB_DOWNLOAD_TIMEOUT: 60
+      WATCHFILES_FORCE_POLLING: "true"
     ports:
       - "8010:8010"
     depends_on:
@@ -38,7 +39,7 @@ services:
         condition: service_healthy
     volumes:
       - hf_cache:/home/appuser/.cache/huggingface
-      - .:/app
+      - .:/app  # bind mount for hot-reload in dev
     command: uvicorn main:app --host 0.0.0.0 --port 8010 --reload
     restart: unless-stopped
 
