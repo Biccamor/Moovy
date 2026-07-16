@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
-from typing import Optional 
+from typing import Optional
 from datetime import date
+from uuid import UUID
 
 class LlmExtraMovie(BaseModel):
     """Schemat extra filmów zwracanych przez LLM — tytuł, gatunki i reasoning."""
@@ -20,6 +21,7 @@ class LlmOutput(BaseModel):
 
 class ExtraMovie(BaseModel):
     movie_title: str
+    movie_id: Optional[UUID] = None       # wewnętrzne UUID z bazy (do /rating/rate)
     genres: list[str]
     poster_path: str
     release_date: Optional[date] = None   # mapowane z bazy po tytule
@@ -31,8 +33,9 @@ class ExtraMovie(BaseModel):
 class MovieRecommendation(BaseModel):
     thought: str
     movie_title: str
+    movie_id: Optional[UUID] = None       # wewnętrzne UUID z bazy (do /rating/rate)
     reasoning_pl: str
-    extra_movies: list[ExtraMovie] 
+    extra_movies: list[ExtraMovie]
     poster_path: str
     genres: list[str]
     release_date: Optional[date] = None   # mapowane z bazy po tytule
