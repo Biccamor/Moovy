@@ -1,5 +1,7 @@
 import numpy as np
+from langfuse import observe
 
+@observe(as_type='span', name='fusion ranker')
 def fusion_ranker(user_list: list, top_movies: list, limit_movies: int = 15, alpha: float = 0.3):    
     
     if not top_movies:

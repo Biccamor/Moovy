@@ -6,6 +6,7 @@ from flashrank import RerankRequest
 import scripts.dependencies as d
 import asyncio
 from sqlalchemy import case 
+from langfuse import observe
 
 async def create_vector(prompt: list | str):
     # SentenceTransformer.encode() zwraca numpy array bezpośrednio (nie dict jak BGEM3FlagModel)
@@ -17,6 +18,7 @@ async def create_vector(prompt: list | str):
     )
     return result.tolist()  # type: ignore
 
+@observe(as_type="span", name="reranker")
 async def reranker(prompt, top_movies: list, limit_movies:int = 25):
     if not top_movies:
         return []
@@ -35,6 +37,7 @@ async def reranker(prompt, top_movies: list, limit_movies:int = 25):
     reranked = [top_movies[r["id"]] for r in results[:limit_movies]] # bierzemy z top movies topowe filmy wedlug rerankera wiec jest tam poster_path etc
     return reranked
 
+@observe(as_type="span", name="hybrid search")
 async def hybrid_search(query_vector: list[float], max_runtime: int, session, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.15, limit_movies: int = 50) -> list:
     
 
