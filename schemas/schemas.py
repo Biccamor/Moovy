@@ -130,3 +130,25 @@ class SessionResponse(BaseModel):
     members: List[SessionMemberResponse]
     recommendations: Optional[List[dict]] = None
     created_at: Optional[str] = None
+
+
+# ─── Profil użytkownika ──────────────────────────────────────────────
+
+class NicknameUpdate(BaseModel):
+    """Request body – ustawienie / zmiana nickname'u."""
+    nickname: str = Field(min_length=1, max_length=30)
+
+class ProfilePictureUpdate(BaseModel):
+    """Request body – ustawienie / zmiana zdjęcia profilowego (base64)."""
+    profile_picture: str = Field(
+        min_length=1,
+        max_length=5_000_000,  # ~3.75 MB after base64 encoding
+        description="Base64-encoded image (png/jpg/webp)",
+    )
+
+class ProfileResponse(BaseModel):
+    """Publiczny widok profilu użytkownika."""
+    user_id: UUID
+    email: str
+    nickname: Optional[str] = None
+    profile_picture: Optional[str] = None

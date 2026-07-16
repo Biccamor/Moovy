@@ -6,6 +6,7 @@ from routers.preference_router import router as preference_router
 from routers.session_router import router as session_router
 from routers.movies_router import router as search_router
 from routers.rating_router import router as rating_router
+from routers.profile_router import router as profile_router
 import time
 import logging
 from fastapi.middleware.cors import CORSMiddleware
@@ -53,7 +54,7 @@ app.add_middleware(
 @app.middleware("http")
 async def limit_body_size(request: Request, call_next):
     """Blokuje requesty z body > 64KB — ochrona przed DoS przez ogromny JSON."""
-    MAX_BODY = 64 * 1024  # 64 KB
+    MAX_BODY = 5 * 1024 * 1024  # 5 MB (base64 profile pictures)
     content_length = request.headers.get("content-length")
     if content_length and int(content_length) > MAX_BODY:
         from fastapi.responses import JSONResponse
@@ -71,6 +72,7 @@ app.include_router(preference_router)
 app.include_router(session_router)
 app.include_router(search_router)
 app.include_router(rating_router)
+app.include_router(profile_router)
 
 @app.get("/health")
 async def health():
