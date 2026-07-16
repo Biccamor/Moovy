@@ -106,7 +106,10 @@ jobs:
             username: ${{ secrets.GCP_VM_USER }}
             key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
             script: |
+              set -e
               cd /home/fabia/Moovy
+              git fetch origin main
+              git reset --hard origin/main
               git pull origin main
               mv .env.prod .env
               docker compose -f compose.prod.yaml down
