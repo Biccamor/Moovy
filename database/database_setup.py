@@ -1,6 +1,6 @@
 from sqlmodel import Field, SQLModel, Column
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import UniqueConstraint, Text
 from uuid import UUID, uuid4
 from pgvector.sqlalchemy import Vector
 from datetime import date
@@ -21,6 +21,8 @@ class User(SQLModel, table=True):
     user_id: UUID = Field(default_factory=uuid4, primary_key=True)
     email: str = Field(unique=True, index=True)
     hash_password: str
+    nickname: str | None = Field(default=None, max_length=30)
+    profile_picture: str | None = Field(default=None, sa_column=Column(Text))
 
     taste_positive: list[float] | None = Field(sa_column=Column(Vector(768)), default=None)
     taste_negative: list[float] | None = Field(sa_column=Column(Vector(768)), default=None)

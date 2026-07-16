@@ -9,7 +9,6 @@ from fastapi import HTTPException
 from openai import RateLimitError, AuthenticationError, APIConnectionError, APIStatusError
 from pydantic import ValidationError
 from schemas.llm_schemas import ExtraMovie, LlmExtraMovie, LlmOutput, MovieRecommendation 
-from langfuse import observe  # type: ignore[attr-defined]
 
 logger = logging.getLogger(__name__)
 client = AsyncOpenAI(base_url="https://api.groq.com/openai/v1", api_key=os.getenv("GROQ_API_KEY"))
