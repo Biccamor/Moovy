@@ -36,6 +36,7 @@ class ExtraMovie(BaseModel):
     release_date: Optional[date] = None   # mapowane z bazy po tytule
     runtime: Optional[int] = None
     rating: Optional[float] = None
+    tmdb_id: Optional[int] = None
     thought: str = ""
 
 class MovieRecommendation(BaseModel):
@@ -48,6 +49,7 @@ class MovieRecommendation(BaseModel):
     release_date: Optional[date] = None   # mapowane z bazy po tytule
     runtime: Optional[int] = None
     rating: Optional[float] = None
+    tmdb_id: Optional[int] = None
 
 async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: str, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.25, limit_movies: int = 75):
     t1 = time.perf_counter()
@@ -154,6 +156,7 @@ async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: 
         release_date=matched.release_date if matched else None,
         runtime=matched.runtime if matched else None,
         rating=matched.rating if matched else None,
+        tmdb_id=matched.tmdb_id if matched else None,
     )
 
     for extra in llm_result.extra_movies:
@@ -165,6 +168,7 @@ async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: 
             release_date=matched_extra.release_date if matched_extra else None,
             runtime=matched_extra.runtime if matched_extra else None,
             rating=matched_extra.rating if matched_extra else None,
+            tmdb_id=matched_extra.tmdb_id if matched_extra else None,
             thought=extra.reasoning,
         ))
 
