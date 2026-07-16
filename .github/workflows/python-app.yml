@@ -65,3 +65,19 @@ jobs:
     - name: Security Scan with Bandit 
       run: | 
         docker compose exec -T app bandit -r . -x venv,__pycache__,.pytest_cache,.vscode,/test
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GCP VM
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.GCP_VM_IP }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/fabia/Moovy
+            git pull origin main
+            docker compose down
+            docker compose up -d --build
