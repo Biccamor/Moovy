@@ -66,18 +66,48 @@ jobs:
       run: | 
         docker compose exec -T app bandit -r . -x venv,__pycache__,.pytest_cache,.vscode,/test
   deploy:
-    needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GCP VM
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.GCP_VM_IP }}
-          username: ${{ secrets.GCP_VM_USER }}
-          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          script: |
-            cd /home/fabia/Moovy
-            git pull origin main
-            docker compose down
-            docker compose up -d --build
+      needs: build
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      runs-on: ubuntu-latest
+      steps:
+        - name: Create .env for deploy
+          run: |
+            cat > .env.prod << EOF
+            secret_key=${{ secrets.SECRET_KEY }}
+            algorithm=${{ secrets.ALGORITHM }}
+            access_token_expire=${{ secrets.ACCESS_TOKEN_EXPIRE }}
+            refresh_token_expire_days=${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DATABASE_URL_LOCAL=${{ secrets.DATABASE_URL_LOCAL }}
+            BEARER_TOKEN=${{ secrets.BEARER_TOKEN }}
+            TMDB_API=${{ secrets.TMDB_API }}
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            LANGFUSE_BASE_URL=${{ secrets.LANGFUSE_BASE_URL }}
+            LANGFUSE_PUBLIC_KEY=${{ secrets.LANGFUSE_PUBLIC_KEY }}
+            LANGFUSE_SECRET_KEY=${{ secrets.LANGFUSE_SECRET_KEY }}
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASS }}
+            EOF
+
+        - name: Copy .env to VM
+          uses: appleboy/scp-action@v0.1.7
+          with:
+            host: ${{ secrets.GCP_VM_IP }}
+            username: ${{ secrets.GCP_VM_USER }}
+            key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+            source: ".env.prod"
+            target: "/home/fabia/Moovy"
+
+        - name: Deploy to GCP VM
+          uses: appleboy/ssh-action@v1
+          with:
+            host: ${{ secrets.GCP_VM_IP }}
+            username: ${{ secrets.GCP_VM_USER }}
+            key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+            script: |
+              cd /home/fabia/Moovy
+              git pull origin main
+              mv .env.prod .env
+              docker compose -f compose.prod.yaml down
+              docker compose -f compose.prod.yaml up -d --build
