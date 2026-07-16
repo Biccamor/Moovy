@@ -7,8 +7,8 @@ Respond EXACTLY with this JSON structure and write the reasoning in English:
   "genres": ["Genre1", "Genre2"],
   "reasoning": "2-3 sentences explaining why you chose this movie for this group, based strictly on the description and genres",
   "extra_movies": [
-    {"movie_title": "different title exactly as in the list", "genres": ["Genre1"]},
-    {"movie_title": "another different title exactly as in the list", "genres": ["Genre1"]}
+    {"movie_title": "different title exactly as in the list", "genres": ["Genre1"], "reasoning": "2-3 sentences explaining why you chose this movie for this group, based strictly on the description and genres"},
+    {"movie_title": "another different title exactly as in the list", "genres": ["Genre1"],  "reasoning": "2-3 sentences explaining why you chose this movie for this group, based strictly on the description and genres"}
   ]
 }
 
@@ -26,17 +26,17 @@ EXAMPLES:
 Example 1 — clear match:
 Candidates: 1. Shrek (7.9) | Comedy, Animation  2. Interstellar (8.6) | Sci-Fi, Drama  3. The Matrix (8.7) | Action, Sci-Fi
 Group vibes: wants comedy and something chill
-Output: {"thought": "Group wants comedy and chill. Shrek is the only comedy on the list and fits perfectly.", "movie_title": "Shrek", "genres": ["Comedy", "Animation"], "reasoning": "Shrek is a lighthearted comedy-animation that directly matches the group's request for something fun and chill. It requires no prior knowledge and works well for a relaxed group setting.", "extra_movies": [{"movie_title": "Interstellar", "genres": ["Sci-Fi", "Drama"]}, {"movie_title": "The Matrix", "genres": ["Action", "Sci-Fi"]}]}
+Output: {"thought": "Group wants comedy and chill. Shrek is the only comedy on the list and fits perfectly.", "movie_title": "Shrek", "genres": ["Comedy", "Animation"], "reasoning": "Shrek is a lighthearted comedy-animation that directly matches the group's request for something fun and chill. It requires no prior knowledge and works well for a relaxed group setting.", "extra_movies": [{"movie_title": "Interstellar", "genres": ["Sci-Fi", "Drama"], "reasoning": "Interstellar is an awe-inspiring sci-fi epic with emotional depth — a great alternative if the group wants something more cerebral and visually stunning."}, {"movie_title": "The Matrix", "genres": ["Action", "Sci-Fi"], "reasoning": "The Matrix is a fast-paced action classic with iconic scenes — ideal if the group prefers thrills over laughs."}]}
 
 Example 2 — ambiguous vibes, prefer higher rating:
 Candidates: 1. The Notebook (7.0) | Romance, Drama  2. La La Land (8.0) | Romance, Musical  3. Titanic (7.9) | Romance, Drama
 Group vibes: romantic evening, something emotional
-Output: {"thought": "All three are romantic and emotional. Vibes are ambiguous so I prefer the highest rated — La La Land at 8.0.", "movie_title": "La La Land", "genres": ["Romance", "Musical"], "reasoning": "La La Land is a romantic and emotionally resonant film that fits the group's mood well. Since multiple candidates matched equally, it was selected for its higher rating among the options.", "extra_movies": [{"movie_title": "Titanic", "genres": ["Romance", "Drama"]}, {"movie_title": "The Notebook", "genres": ["Romance", "Drama"]}]}
+Output: {"thought": "All three are romantic and emotional. Vibes are ambiguous so I prefer the highest rated — La La Land at 8.0.", "movie_title": "La La Land", "genres": ["Romance", "Musical"], "reasoning": "La La Land is a romantic and emotionally resonant film that fits the group's mood well. Since multiple candidates matched equally, it was selected for its higher rating among the options.", "extra_movies": [{"movie_title": "Titanic", "genres": ["Romance", "Drama"], "reasoning": "Titanic is an epic romance with high emotional stakes — a strong alternative for a deeply moving love story."}, {"movie_title": "The Notebook", "genres": ["Romance", "Drama"], "reasoning": "The Notebook is a classic tearjerker romance, perfect for an intimate and emotional evening."}]}
 
 Example 3 — no good fit, pick closest and explain gap:
 Candidates: 1. Saving Private Ryan (8.6) | War, Drama  2. 1917 (8.3) | War, Drama  3. Dunkirk (7.9) | War, Drama
 Group vibes: wants something fun and lighthearted for a party
-Output: {"thought": "No candidate matches a fun party vibe — all are serious war dramas. Dunkirk is the shortest and most visually intense, making it the least heavy sit for a group.", "movie_title": "Dunkirk", "genres": ["War", "Drama"], "reasoning": "None of the candidates match a fun or lighthearted party atmosphere — all are serious war dramas. Dunkirk was chosen as the closest fit due to its fast pace and shorter runtime, though the group should be aware it is an intense, dramatic film.", "extra_movies": [{"movie_title": "1917", "genres": ["War", "Drama"]}, {"movie_title": "Saving Private Ryan", "genres": ["War", "Drama"]}]}
+Output: {"thought": "No candidate matches a fun party vibe — all are serious war dramas. Dunkirk is the shortest and most visually intense, making it the least heavy sit for a group.", "movie_title": "Dunkirk", "genres": ["War", "Drama"], "reasoning": "None of the candidates match a fun or lighthearted party atmosphere — all are serious war dramas. Dunkirk was chosen as the closest fit due to its fast pace and shorter runtime, though the group should be aware it is an intense, dramatic film.", "extra_movies": [{"movie_title": "1917", "genres": ["War", "Drama"], "reasoning": "1917 is a gripping one-shot war film with relentless tension — a solid pick if the group wants an immersive cinematic experience."}, {"movie_title": "Saving Private Ryan", "genres": ["War", "Drama"], "reasoning": "Saving Private Ryan is a powerful and emotional war epic — best for a group ready for a heavy but rewarding watch."}]}
 """
 
 

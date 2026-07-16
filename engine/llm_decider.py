@@ -14,9 +14,10 @@ client = AsyncOpenAI(base_url="https://api.groq.com/openai/v1", api_key=os.geten
 # ── Schematy dla LLM (tylko to co model może znać) ──────────────────────────
 
 class LlmExtraMovie(BaseModel):
-    """Schemat extra filmów zwracanych przez LLM — tylko tytuł i gatunki."""
+    """Schemat extra filmów zwracanych przez LLM — tytuł, gatunki i reasoning."""
     movie_title: str
     genres: list[str] = Field(default_factory=list)
+    reasoning: str = ""
 
 class LlmOutput(BaseModel):
     """Schemat odpowiedzi LLM — bez poster_path i release_date (LLM ich nie zna)."""
@@ -35,6 +36,7 @@ class ExtraMovie(BaseModel):
     release_date: Optional[date] = None   # mapowane z bazy po tytule
     runtime: Optional[int] = None
     rating: Optional[float] = None
+    thought: str = ""
 
 class MovieRecommendation(BaseModel):
     thought: str
@@ -163,6 +165,7 @@ async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: 
             release_date=matched_extra.release_date if matched_extra else None,
             runtime=matched_extra.runtime if matched_extra else None,
             rating=matched_extra.rating if matched_extra else None,
+            thought=extra.reasoning,
         ))
 
     return result
