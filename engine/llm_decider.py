@@ -102,11 +102,12 @@ async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: 
         )
 
 
-    # mapujemy dane z bazy (poster, rok, gatunki, czas trwania, ocena)
+    # mapujemy dane z bazy (poster, rok, gatunki, czas trwania, ocena, movie_id)
     matched = find_movie(llm_result.movie_title)
     result = MovieRecommendation(
         thought=llm_result.thought,
         movie_title=llm_result.movie_title,
+        movie_id=matched.movie_id if matched else None,
         reasoning_pl=llm_result.reasoning,
         extra_movies=[],
         poster_path=matched.poster_path or '' if matched else '',
@@ -121,6 +122,7 @@ async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: 
         matched_extra = find_movie(extra.movie_title)
         result.extra_movies.append(ExtraMovie(
             movie_title=extra.movie_title,
+            movie_id=matched_extra.movie_id if matched_extra else None,
             genres=matched_extra.genre or [] if matched_extra else extra.genres,
             poster_path=matched_extra.poster_path or '' if matched_extra else '',
             release_date=matched_extra.release_date if matched_extra else None,
