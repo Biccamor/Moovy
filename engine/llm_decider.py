@@ -3,19 +3,17 @@ from engine.vector import hybrid_search, reranker
 import os
 import time, random
 import logging
-from openai import AsyncOpenAI 
+from langfuse.openai import AsyncOpenAI  # type: ignore  # drop-in wrapper: auto-tracks tokens, cost, latency
 from engine.taste_reranker import fusion_ranker
 from fastapi import HTTPException
 from openai import RateLimitError, AuthenticationError, APIConnectionError, APIStatusError
 from pydantic import ValidationError
 from schemas.llm_schemas import ExtraMovie, LlmExtraMovie, LlmOutput, MovieRecommendation 
 from langfuse import observe  # type: ignore[attr-defined]
-from langfuse.decorators import langfuse_context  # type: ignore[import-unresolved]
 
 logger = logging.getLogger(__name__)
 client = AsyncOpenAI(base_url="https://api.groq.com/openai/v1", api_key=os.getenv("GROQ_API_KEY"))
 
-@observe(as_type="generation", name="llm-decider")
 async def llm_call(user_prompt):
     response = await client.chat.completions.create(
         model="llama-3.1-8b-instant",
@@ -26,17 +24,6 @@ async def llm_call(user_prompt):
         temperature=0.25,
         top_p=0.9,
         response_format={"type": "json_object"},
-    )
-
-    langfuse_context.update_current_observation(
-        model="llama-3.1-8b-instant",
-        input=user_prompt,
-        output=response.choices[0].message.content,
-        usage={
-            "input": response.usage.prompt_tokens,
-            "output": response.usage.completion_tokens,
-            "total": response.usage.total_tokens,
-        } if response.usage else None,
     )
 
     return response
