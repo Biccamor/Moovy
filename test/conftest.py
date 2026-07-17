@@ -32,6 +32,7 @@ _HEAVY_MODULES = [
     "psycopg2",
     "psycopg2.extensions",
     "psycopg2._psycopg",
+    "langfuse",
 ]
 
 for mod_name in _HEAVY_MODULES:

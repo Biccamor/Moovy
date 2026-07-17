@@ -90,7 +90,7 @@ async def add_favourites(request: Request, favourites_id: list[int], user_id: UU
             )
 
         vector = movie.embedding 
-        if not vector: 
+        if vector is None or len(vector)==0: 
             continue 
 
         if user_positive_vector is None: 
