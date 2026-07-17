@@ -21,13 +21,13 @@ def fusion_ranker(user_list: list, top_movies: list, limit_movies: int = 15, alp
     candidates = 0
     for u in user_list:
 
-        if not u.taste_positive:
+        if u.taste_positive is None or len(u.taste_positive) == 0:
             continue
         candidates += 1
 
         score = embeddings @ np.array(u.taste_positive)
 
-        if u.taste_negative:
+        if u.taste_negative is not None and len(u.taste_negative) > 0:
             score -= alpha * (embeddings @ np.array(u.taste_negative))
         combined += score
     combined /= candidates

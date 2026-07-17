@@ -19,10 +19,17 @@ WEIGHTS = {
 }
 
 
+def _to_numpy(value) -> np.ndarray:
+    """Bezpiecznie konwertuje listę, numpy array lub JSON string na np.ndarray."""
+    if isinstance(value, np.ndarray):
+        return value.astype(np.float64)
+    return np.array(value, dtype=np.float64)
+
+
 def _incremental_update(old_taste, count, embedding, weight):
     """new_taste = normalize(old_taste * count + embedding * weight)"""
-    emb = np.array(embedding, dtype=np.float64)
-    old = np.array(old_taste, dtype=np.float64) if old_taste else np.zeros_like(emb)
+    emb = _to_numpy(embedding)
+    old = _to_numpy(old_taste) if old_taste is not None and len(old_taste) > 0 else np.zeros_like(emb)
     acc = old * count + emb * weight
     norm = np.linalg.norm(acc)
     return (acc / norm).tolist() if norm > 0 else acc.tolist()
@@ -30,13 +37,13 @@ def _incremental_update(old_taste, count, embedding, weight):
 
 def _reverse_update(old_taste, count, embedding, weight):
     """Odwraca poprzedni incremental update. Zwraca (new_taste | None, new_count)."""
-    if not old_taste or count <= 0:
+    if old_taste is None or count <= 0:
         return None, 0
     if count == 1:
         return None, 0
 
-    emb = np.array(embedding, dtype=np.float64)
-    acc = np.array(old_taste, dtype=np.float64) * count - emb * weight
+    emb = _to_numpy(embedding)
+    acc = _to_numpy(old_taste) * count - emb * weight
     norm = np.linalg.norm(acc)
     if norm > 0:
         return (acc / norm).tolist(), count - 1
@@ -97,7 +104,7 @@ async def rate_movie(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     movie = session.exec(select(Movie).where(Movie.movie_id == data.movie_id)).first()
-    if not movie or not movie.embedding:
+    if not movie or movie.embedding is None or len(movie.embedding) == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found or has no embedding")
 
     new_status = data.status.upper().strip()
