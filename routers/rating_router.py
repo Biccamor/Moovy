@@ -164,7 +164,7 @@ async def unrate_movie(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No rating found for this movie")
 
     # odwróć wpływ na wektor
-    if existing.status in WEIGHTS and movie.embedding:
+    if existing.status in WEIGHTS and movie.embedding is not None and len(movie.embedding) > 0:
         _remove_old_rating(user, movie.embedding, existing.status)
 
     session.delete(existing)
