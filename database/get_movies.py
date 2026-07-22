@@ -27,7 +27,7 @@ headers = {
 }
 d.load_model()  
 
-PAGES = 200
+PAGES = 400
 MAX_RETRIES = 5
 
 http = requests.Session()
@@ -101,6 +101,7 @@ def add_movies(start_page: int = 1):
             try:
                 url = f"https://api.themoviedb.org/3/movie/popular?language=en-US&page={page}"
                 movies_list = http.get(url, timeout=10).json().get("results", [])
+                movies_list = [m for m in movies_list if m.get("vote_count", 0) >= 100]
             except Exception as e:
                 print(f"Błąd pobierania strony {page}: {e}, pomijam")
                 continue
@@ -115,6 +116,10 @@ def add_movies(start_page: int = 1):
 
             for movie, details in zip(movies_list, all_details):
                 if not details:  # pominięty film
+                    continue
+
+                vote_count = details.get("vote_count", movie.get("vote_count", 0))
+                if vote_count is None or vote_count < 100:
                     continue
                     
                 runtime = details.get("runtime", 0)
