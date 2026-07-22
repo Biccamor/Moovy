@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from flashrank import RerankRequest
 import scripts.dependencies as d
 import asyncio
-from sqlalchemy import case 
+import numpy as np 
 from langfuse import observe
 
 async def create_vector(prompt: list | str):
@@ -38,7 +38,7 @@ async def reranker(prompt, top_movies: list, limit_movies:int = 25):
     return reranked
 
 @observe(as_type="span", name="hybrid search")
-async def hybrid_search(query_vector: list[float], max_runtime: int, session, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.1, limit_movies: int = 50) -> list:
+async def hybrid_search(query_vector: list[float], max_runtime: int, session, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.1, limit_movies: int = 100) -> list:
     
 
     # HNSW ef_search — wyższy = dokładniejszy ale wolniejszy (default 40, max 1000)
@@ -77,3 +77,27 @@ async def hybrid_search(query_vector: list[float], max_runtime: int, session, us
         {"movie": row[0], "score": float(row[1])}
         for row in session.exec(statement).all()
     ]
+
+@observe(as_type="span", name="temperature")
+async def temperature(top_movies, limit: int = 40, temp: float = 0.8):
+    if not top_movies: return []
+
+    scores = np.array([m["score"] for m in top_movies])
+
+    # Przekształcamy dystans na miarę podobieństwa (odwracamy znak) i dzielimy przez temperaturę
+    
+    logits = -scores / temp
+    
+    # Odejmujemy max dla stabilności numerycznej exp()
+    exp_logits = np.exp(logits - np.max(logits))
+    probabilities = exp_logits / np.sum(exp_logits)
+    
+    # Losujemy `limit` filmów bez powtórzeń zgodnie z wagami prawdopodobieństwa
+    chosen_indices = np.random.choice(
+        len(top_movies), 
+        size=min(limit, len(top_movies)), 
+        replace=False, 
+        p=probabilities
+    )
+    
+    return [top_movies[i] for i in chosen_indices]
