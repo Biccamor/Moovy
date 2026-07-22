@@ -186,8 +186,8 @@ class TestAddFavourites:
         mock_user = _make_mock_user(user_id, taste_positive=None)
         mock_movie = _make_mock_movie(tmdb_id=550)
 
-        # Pierwsze .first() → user, drugie .first() → movie
-        mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie]
+        # Pierwsze .first() → user, drugie .first() → movie, trzecie .first() → User_Interaction (None)
+        mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie, None]
         mock_np.linalg.norm.return_value = 1.0
 
         response = client.post(
@@ -213,7 +213,7 @@ class TestAddFavourites:
         mock_user = _make_mock_user(user_id, taste_positive=existing_vector)
         mock_movie = _make_mock_movie(tmdb_id=550)
 
-        mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie]
+        mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie, None]
         mock_np.add.return_value.tolist.return_value = [0.6] * 768
         mock_np.linalg.norm.return_value = 1.0
 
@@ -340,8 +340,8 @@ class TestAddFavourites:
         mock_user = _make_mock_user(user_id, taste_positive=None)
         mock_movie = _make_mock_movie()
 
-        # user + 5x movie
-        mock_db.exec.return_value.first.side_effect = [mock_user] + [mock_movie] * 5
+        # user + 5x (movie, interaction)
+        mock_db.exec.return_value.first.side_effect = [mock_user] + [mock_movie, None] * 5
         mock_np.add.return_value.tolist.return_value = [0.5] * 768
         mock_np.linalg.norm.return_value = 1.0
 

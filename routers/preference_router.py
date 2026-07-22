@@ -3,7 +3,7 @@ from schemas.schemas import SavedPreferences
 from scripts.security import get_current_user
 from sqlmodel import select
 from database.main_db import get_session
-from database.database_setup import User, Movie
+from database.database_setup import User, Movie, User_Interaction
 from uuid import UUID
 from scripts.dependencies import limiter
 import numpy as np 
@@ -92,6 +92,16 @@ async def add_favourites(request: Request, favourites_id: list[int], user_id: UU
         vector = movie.embedding 
         if vector is None or len(vector)==0: 
             continue 
+
+        # Zapisz interakcję w bazie, aby hybrid_search wiedział o tym filmie
+        existing_interaction = session.exec(
+            select(User_Interaction).where(
+                User_Interaction.user_id == user_id,
+                User_Interaction.movie_id == movie.movie_id,
+            )
+        ).first()
+        if not existing_interaction:
+            session.add(User_Interaction(user_id=user_id, movie_id=movie.movie_id, status="LOVE"))
 
         if user_positive_vector is None: 
             user_positive_vector = vector
