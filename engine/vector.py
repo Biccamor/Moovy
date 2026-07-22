@@ -38,7 +38,7 @@ async def reranker(prompt, top_movies: list, limit_movies:int = 25):
     return reranked
 
 @observe(as_type="span", name="hybrid search")
-async def hybrid_search(query_vector: list[float], max_runtime: int, session, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.15, limit_movies: int = 50) -> list:
+async def hybrid_search(query_vector: list[float], max_runtime: int, session, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.1, limit_movies: int = 50) -> list:
     
 
     # HNSW ef_search — wyższy = dokładniejszy ale wolniejszy (default 40, max 1000)
@@ -62,18 +62,14 @@ async def hybrid_search(query_vector: list[float], max_runtime: int, session, us
     banned_users = []
     if allow_seen_dict:
         # szukamy UUID userów, którzy NIE pozwalają na widziane filmy
-        banned_users = [UUID(uid) for uid, data in allow_seen_dict.items() if not data.get("allow_seen", False)]
+        banned_users = [UUID(str(uid)) for uid, data in allow_seen_dict.items() if not data.get("allow_seen", False)]
     else:
         # jeśli brak dict, banujemy dla wszystkich u których sprawdzamy (domyślne zachowanie)
         banned_users = [u.user_id for u in user_list] if user_list else []
         
     if banned_users:
-        banned_movie_ids = session.exec(
-            select(User_Interaction.movie_id)
-            .where(User_Interaction.user_id.in_(banned_users))
-        ).all()
-        if banned_movie_ids:
-            statement = statement.where(Movie.movie_id.notin_(set(banned_movie_ids)))
+        banned_subquery = select(User_Interaction.movie_id).where(User_Interaction.user_id.in_(banned_users))
+        statement = statement.where(Movie.movie_id.notin_(banned_subquery))
 
     statement = statement.limit(limit_movies)
         
