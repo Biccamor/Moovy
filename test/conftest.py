@@ -33,6 +33,7 @@ _HEAVY_MODULES = [
     "psycopg2.extensions",
     "psycopg2._psycopg",
     "langfuse",
+    "langfuse.openai",
 ]
 
 for mod_name in _HEAVY_MODULES:
@@ -40,7 +41,10 @@ for mod_name in _HEAVY_MODULES:
         try:
             __import__(mod_name)
         except ImportError:
-            sys.modules[mod_name] = MagicMock()
+            mock_mod = MagicMock()
+            if mod_name == "langfuse":
+                mock_mod.observe = lambda *args, **kwargs: (lambda f: f)
+            sys.modules[mod_name] = mock_mod
 
 # ── Teraz bezpiecznie importujemy projekt ────────────────────────────
 
