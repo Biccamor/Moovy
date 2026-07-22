@@ -1,5 +1,5 @@
 from engine.prompts import AGENT_SYSTEM_PROMPT
-from engine.vector import hybrid_search, reranker
+from engine.vector import hybrid_search, reranker, temperature
 import os
 import time, random
 import logging
@@ -30,8 +30,9 @@ async def llm_call(user_prompt):
 
 async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: str, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.25, limit_movies: int = 75):
     top_search = await hybrid_search(query, runtime, session, user_list, allow_seen_dict, hard_nos, rating_weight, limit_movies)
-    rerank = await reranker(reranker_query, top_search, limit_movies=35)
-    taste_ranked = fusion_ranker(user_list, rerank, limit_movies=15, alpha=0.3)
+    temperature_rerank = await temperature(top_search, limit=40)
+    rerank = await reranker(reranker_query, temperature_rerank, limit_movies=30)
+    taste_ranked = fusion_ranker(user_list, rerank, limit_movies=20, alpha=0.3)
 
     if not taste_ranked:
         raise HTTPException(status_code=404, detail="Brak filmów spełniających kryteria, spróbuj np. zwiększyć maksymalny czas trwania.")

@@ -91,6 +91,7 @@ async def temperature(top_movies, limit: int = 40, temp: float = 0.8):
     # Odejmujemy max dla stabilności numerycznej exp()
     exp_logits = np.exp(logits - np.max(logits))
     probabilities = exp_logits / np.sum(exp_logits)
+    probabilities /= probabilities.sum()  # Wzmocnienie stabilności numerycznej dla np.random.choice
     
     # Losujemy `limit` filmów bez powtórzeń zgodnie z wagami prawdopodobieństwa
     chosen_indices = np.random.choice(
