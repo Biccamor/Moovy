@@ -41,52 +41,62 @@ Output: {"thought": "No candidate matches a fun party vibe — all are serious w
 
 
 VIBE_MAP = {
-    "AMBITIOUS": {
+
+    # Parasite / Fight club / Dogvilee / kursoawa 
+
+    "EXISTENTIAL": {
         "genres": {"Drama": 2.0, "Mystery": 1.0, "Thriller": 1.5},
         "keywords": "arthouse, intellectual, thought-provoking, complex plot, slow-burn, philosophical, masterpiece, auteur, cerebral, unconventional narrative, critically acclaimed"
     },
-    "PIZZA_CHILL": {
-        "genres": {"Comedy": 2.0, "Adventure": 1.0, "Action": 1.5},
-        "keywords": "lighthearted, easy to watch, fun, casual, entertaining, feel-good, popcorn movie, no stress, relaxing, crowd-pleaser"
-    },
+
+    # Shutter Island / Szosty zmysl / efekt motyla
     "MIND_BENDER": {
-        "genres": {"Science Fiction": 1.0, "Mystery": 1.5, "Thriller": 1.5},
+        "genres": {"Science Fiction": 1.0, "Mystery": 2.5, "Thriller": 1.5},
         "keywords": "plot twist, psychological, confusing reality, mind-bending, complex timeline, suspense, puzzle, unreliable narrator, layers, inception-like"
     },
+
     "ADRENALINE": {
-        "genres": {"Action": 2.0, "Thriller": 1.4, "Crime": 1.0},
+        "genres": {"Action": 2.5, "Thriller": 1.7, "Crime": 1.0},
         "keywords": "fast-paced, chases, explosions, high stakes, intense survival, martial arts, shootout, heist, non-stop action, combat"
     },
+
     "DATE_NIGHT": {
-        "genres": {"Romance": 2.5, "Comedy": 1.2, "Drama": 1.0},
+        "genres": {"Romance": 3.0, "Comedy": 1.25, "Drama": 1.25},
         "keywords": "romantic, chemistry, love story, charming, relationship, sweet, romantic comedy, heartwarming, couple, falling in love"
     },
+
     "DEEP_FEELS": {
-        "genres": {"Drama": 2.0, "Romance": 1.0, "War": 0.5},
+        "genres": {"Drama": 2.5, "Romance": 1.2},
         "keywords": "emotional, heartbreaking, moving, human connection, tearjerker, sad, tragic, loss, grief, bittersweet, life-changing"
     },
+
     "LAUGH_RIOT": {
-        "genres": {"Comedy": 2.0, "Adventure": 0.5, "Family": 0.5},
+        "genres": {"Comedy": 4.0, "Adventure": 0.5},
         "keywords": "hilarious, laugh out loud, slapstick, funny, satire, spoof, absurd humor, witty dialogue, parody, buddy comedy"
     },
+
     "SPINE_CHILLING": {
-        "genres": {"Horror": 3.5, "Mystery": 1.0, "Thriller": 1.5},
+        "genres": {"Horror":4.0, "Mystery":0.5, "Thriller": 2.0},
         "keywords": "terrifying, dark atmosphere, jump scares, scary, sinister, macabre, supernatural, ghost story, demon, slasher, haunted, creepy, disturbing"
     },
+
     "FAMILY_FUN": {
-        "genres": {"Animation": 2.0, "Family": 2.0, "Comedy": 1.0},
+        "genres": {"Animation": 1.0, "Family": 3.0, "Comedy": 0.5, "Adventure": 0.5},
         "keywords": "animated, pixar, dreamworks, disney, wholesome, colorful, kids and adults, heartwarming adventure, talking animals, magical world, cartoon, studio ghibli, family friendly"
     },
-    "INSPIRING": {
-        "genres": {"Drama": 1.5, "History": 1.4, "Biography": 1.0},
-        "keywords": "uplifting, motivational, overcoming adversity, true story, triumph, hope, underdog, against all odds, perseverance, real events, biographical"
+    "HISTORY_LESSON": {
+        "genres": {"War": 1.0, "History": 2.5},
+        "keywords": "uplifting, motivational, history, war events, overcoming adversity, true story, triumph, hope, underdog, against all odds, perseverance, real events, biographical"
     },
     "EPIC_JOURNEY": {
         "genres": {"Adventure": 2.0, "Fantasy": 1.5, "Science Fiction": 1.5},
         "keywords": "grand scale, quest, world-building, epic, hero's journey, mythology, chosen one, vast landscape, fellowship, saga, legendary"
     },
+
+    # guilty pleasure - 21 jump street / straszny film / american pie / twillith
+
     "GUILTY_PLEASURE": {
-        "genres": {"Comedy": 1.5, "Action": 1.3, "Romance": 1.2},
+        "genres": {"Comedy": 2.5, "Action": 1.3, "Romance": 1.2},
         "keywords": "cheesy, campy, over-the-top, so bad it's good, predictable but fun, cult classic, teen drama, guilty watch, trashy fun, binge-worthy"
     },
 }
