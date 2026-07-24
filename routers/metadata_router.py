@@ -9,8 +9,7 @@ async def get_preferences_options():
     Returns available movie genres and eras for the preferences selection.
     """
     vibes = [
-        "AMBITIOUS",
-        "PIZZA_CHILL",
+        "EXISTENTIAL",
         "MIND_BENDER",
         "ADRENALINE",
         "DATE_NIGHT",
@@ -18,7 +17,7 @@ async def get_preferences_options():
         "LAUGH_RIOT",
         "SPINE_CHILLING",
         "FAMILY_FUN",
-        "INSPIRING",
+        "HISTORY_LESSON",
         "EPIC_JOURNEY",
         "GUILTY_PLEASURE"
     ]
@@ -32,8 +31,7 @@ async def get_preferences_options():
         'Nowości (Lata 20.)'
     ]
     vibe_colors_tuple = {
-    "AMBITIOUS": (10, 75, 92),
-    "PIZZA_CHILL": (224, 117, 43),
+    "EXISTENTIAL": (10, 75, 92),
     "MIND_BENDER": (112, 41, 184),
     "ADRENALINE": (221, 28, 28),
     "DATE_NIGHT": (194, 46, 108),
@@ -41,7 +39,7 @@ async def get_preferences_options():
     "LAUGH_RIOT": (245, 199, 25),
     "SPINE_CHILLING": (46, 64, 51),
     "FAMILY_FUN": (38, 153, 224),
-    "INSPIRING": (227, 172, 54),
+    "HISTORY_LESSON": (227, 172, 54),
     "EPIC_JOURNEY": (161, 113, 66),
     "GUILTY_PLEASURE": (240, 98, 146),
 }

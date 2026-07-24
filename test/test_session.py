@@ -203,7 +203,7 @@ def test_set_preferences_success(mock_flag_modified, client, mock_db, override_c
 
     response = client.put(f"/session/{session_id}/preferences", json={
         "preferences": {
-            "vibes": ["PIZZA_CHILL"],
+            "vibes": ["LAUGH_RIOT"],
             "hard_nos": [],
             "max_runtime": 120,
             "allow_seen": False,
@@ -293,7 +293,7 @@ def test_get_session_details_as_member(client, mock_db, override_current_user):
         host_id=user_id,
         members=[
             {"user_id": user_id, "user_name": "host", "status": "ready",
-             "preferences": {"vibes": ["PIZZA_CHILL"], "hard_nos": [], "max_runtime": 120, "allow_seen": False, "eras": []}},
+             "preferences": {"vibes": ["LAUGH_RIOT"], "hard_nos": [], "max_runtime": 120, "allow_seen": False, "eras": []}},
         ],
     )
 

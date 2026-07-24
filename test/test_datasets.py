@@ -56,7 +56,7 @@ SCENARIOS = [
         "description": "Jedna osoba, wieczór z pizzą, nic wymagającego",
         "meeting_type": "SOLO",
         "users": [
-            _user("Tomek", vibes=["PIZZA_CHILL"]),
+            _user("Tomek", vibes=["LAUGH_RIOT"]),
         ],
     },
     {
@@ -65,7 +65,7 @@ SCENARIOS = [
         "description": "Samotny kinofile szukający czegoś wymagającego",
         "meeting_type": "SOLO",
         "users": [
-            _user("Marta", vibes=["AMBITIOUS", "MIND_BENDER"], max_runtime=180, eras=["2010s", "2020s"]),
+            _user("Marta", vibes=["EXISTENTIAL", "MIND_BENDER"], max_runtime=180, eras=["2010s", "2020s"]),
         ],
     },
     {
@@ -127,7 +127,7 @@ SCENARIOS = [
         "meeting_type": "RANDKA",
         "users": [
             _user("Zuzia", vibes=["GUILTY_PLEASURE", "LAUGH_RIOT"]),
-            _user("Dawid", vibes=["GUILTY_PLEASURE", "PIZZA_CHILL"]),
+            _user("Dawid", vibes=["GUILTY_PLEASURE", "LAUGH_RIOT"]),
         ],
     },
     {
@@ -151,11 +151,11 @@ SCENARIOS = [
         "description": "5 osób — 2 horror fanów, 2 romantyków, 1 thriller fan — skrajny konflikt",
         "meeting_type": "EKIPA",
         "users": [
-            _user("Horror 1", vibes=["SPINE_CHILLING", "AMBITIOUS"], max_runtime=130),
-            _user("Horror 2", vibes=["SPINE_CHILLING", "ADRENALINE"], max_runtime=140),
+            _user("Horror 1", vibes=["SPINE_CHILLING", "EXISTENTIAL"], max_runtime=130),
+            _user("Horror 2", vibes=["SPINE_CHILLING"], max_runtime=120),
             _user("Horror 3", vibes=["SPINE_CHILLING", "MIND_BENDER"], max_runtime=140),
             _user("Horror 4", vibes=["SPINE_CHILLING", "GUILTY_PLEASURE"], max_runtime=130),
-            _user("Thriller", vibes=["ADRENALINE", "MIND_BENDER", "AMBITIOUS"], max_runtime=135),
+            _user("Thriller", vibes=["ADRENALINE", "MIND_BENDER", "EXISTENTIAL"], max_runtime=135),
         ],
     },
 
@@ -165,8 +165,8 @@ SCENARIOS = [
         "description": "Dwóch kumpli — obaj chcą tego samego",
         "meeting_type": "EKIPA",
         "users": [
-            _user("Kamil", vibes=["ADRENALINE", "PIZZA_CHILL"]),
-            _user("Łukasz", vibes=["ADRENALINE", "PIZZA_CHILL"]),
+            _user("Kamil", vibes=["ADRENALINE", "LAUGH_RIOT"]),
+            _user("Łukasz", vibes=["ADRENALINE", "LAUGH_RIOT"]),
         ],
     },
     {
@@ -279,11 +279,11 @@ SCENARIOS = [
         "description": "3 osoby, każdy chce czegoś innego i blokuje to co inni lubią",
         "meeting_type": "EKIPA",
         "users": [
-            _user("X", vibes=["SPINE_CHILLING", "AMBITIOUS"],
-                  hard_nos=["PIZZA_CHILL", "LAUGH_RIOT"]),
-            _user("Y", vibes=["PIZZA_CHILL", "LAUGH_RIOT"],
-                  hard_nos=["SPINE_CHILLING", "AMBITIOUS"]),
-            _user("Z", vibes=["DEEP_FEELS", "INSPIRING"],
+            _user("X", vibes=["SPINE_CHILLING", "EXISTENTIAL"],
+                  hard_nos=["LAUGH_RIOT"]),
+            _user("Y", vibes=["LAUGH_RIOT"],
+                  hard_nos=["SPINE_CHILLING", "EXISTENTIAL"]),
+            _user("Z", vibes=["DEEP_FEELS", "HISTORY_LESSON"],
                   hard_nos=["ADRENALINE", "SPINE_CHILLING"]),
         ],
     },
@@ -294,20 +294,20 @@ SCENARIOS = [
         "meeting_type": "SOLO",
         "users": [
             _user("MaxVibes", vibes=[
-                "PIZZA_CHILL", "MIND_BENDER", "ADRENALINE", "DATE_NIGHT",
+                "EXISTENTIAL", "MIND_BENDER", "ADRENALINE", "DATE_NIGHT",
                 "DEEP_FEELS", "LAUGH_RIOT", "SPINE_CHILLING", "FAMILY_FUN",
-                "INSPIRING", "EPIC_JOURNEY", "GUILTY_PLEASURE", "AMBITIOUS",
+                "HISTORY_LESSON", "EPIC_JOURNEY", "GUILTY_PLEASURE",
             ], max_runtime=240, allow_seen=True),
         ],
     },
     {
         # 21. Normalizacja test - 2 osoby: jedna guilty pleasure, druga 4 vibes thriller/horror
         "name": "normalization_guilty_vs_thriller",
-        "description": "2 osoby: jedna chce tylko GUILTY_PLEASURE, druga 4 vibes thriller/horror (SPINE_CHILLING, MIND_BENDER, ADRENALINE, AMBITIOUS). Testuje czy normalizacja wektora zapobiega dominacji preferencji drugiej osoby.",
+        "description": "2 osoby: jedna chce tylko GUILTY_PLEASURE, druga 4 vibes thriller/horror (SPINE_CHILLING, MIND_BENDER, ADRENALINE, EXISTENTIAL). Testuje czy normalizacja wektora zapobiega dominacji preferencji drugiej osoby.",
         "meeting_type": "RANDKA",
         "users": [
             _user("GuiltyUser", vibes=["GUILTY_PLEASURE"]),
-            _user("ThrillerUser", vibes=["SPINE_CHILLING", "MIND_BENDER", "ADRENALINE", "AMBITIOUS"]),
+            _user("ThrillerUser", vibes=["SPINE_CHILLING", "MIND_BENDER", "ADRENALINE", "EXISTENTIAL"]),
         ],
     },
 ]
