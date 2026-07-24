@@ -23,7 +23,7 @@ def test_vector_normalization_guilty_vs_thriller():
         user_id=str(uuid4()),
         user_name="ThrillerUser",
         personal_vibe=Preferences(
-            vibes=["SPINE_CHILLING", "MIND_BENDER", "ADRENALINE", "AMBITIOUS"],
+            vibes=["SPINE_CHILLING", "MIND_BENDER", "ADRENALINE", "EXISTENTIAL"],
             hard_nos=[],
             max_runtime=120,
             allow_seen=False,
@@ -48,41 +48,41 @@ def test_vector_normalization_guilty_vs_thriller():
     # Sprawdzamy wygenerowane wagi w prompts_with_weights.
     # Wkład każdego użytkownika w sumie wektora cech (gatunków) po normalizacji L2 wynosi dokładnie 1.0.
     #
-    # Oczekiwane wartości na podstawie definicji w VIBE_MAP:
+    # Oczekiwane wartości na podstawie aktualnej definicji w VIBE_MAP:
     # 
     # Dla GuiltyUser (GUILTY_PLEASURE):
-    # - Comedy: 1.5, Action: 1.3, Romance: 1.2
-    # - L2 norm = sqrt(1.5^2 + 1.3^2 + 1.2^2) = sqrt(2.25 + 1.69 + 1.44) = sqrt(5.38) ≈ 2.3194827
+    # - Comedy: 2.5, Action: 1.3, Romance: 1.2
+    # - L2 norm = sqrt(2.5^2 + 1.3^2 + 1.2^2) = sqrt(6.25 + 1.69 + 1.44) = sqrt(9.38) ≈ 3.0626785
     # - Normalized:
-    #   Comedy: 1.5 / 2.3194827 ≈ 0.6467
-    #   Action: 1.3 / 2.3194827 ≈ 0.5605
-    #   Romance: 1.2 / 2.3194827 ≈ 0.5174
+    #   Comedy: 2.5 / 3.0626785 ≈ 0.8163
+    #   Action: 1.3 / 3.0626785 ≈ 0.4245
+    #   Romance: 1.2 / 3.0626785 ≈ 0.3918
     #
-    # Dla ThrillerUser (SPINE_CHILLING, MIND_BENDER, ADRENALINE, AMBITIOUS):
-    # - SPINE_CHILLING: Horror: 3.5, Mystery: 1.0, Thriller: 1.5
-    # - MIND_BENDER: Science Fiction: 1.0, Mystery: 1.5, Thriller: 1.5
-    # - ADRENALINE: Action: 2.0, Thriller: 1.4, Crime: 1.0
-    # - AMBITIOUS: Drama: 2.0, Mystery: 1.0, Thriller: 1.5
+    # Dla ThrillerUser (SPINE_CHILLING, MIND_BENDER, ADRENALINE, EXISTENTIAL):
+    # - SPINE_CHILLING: Horror: 4.0, Mystery: 0.5, Thriller: 2.0
+    # - MIND_BENDER: Science Fiction: 1.0, Mystery: 2.5, Thriller: 1.5
+    # - ADRENALINE: Action: 2.5, Thriller: 1.7, Crime: 1.0
+    # - EXISTENTIAL: Drama: 2.0, Mystery: 1.0, Thriller: 1.5
     #
     # Suma nieunormowana gatunków ThrillerUser:
-    # - Horror: 3.5
-    # - Mystery: 1.0 + 1.5 + 1.0 = 3.5
-    # - Thriller: 1.5 + 1.5 + 1.4 + 1.5 = 5.9
-    # - Science Fiction (czyli "Science Fiction"): 1.0
-    # - Action: 2.0
+    # - Horror: 4.0
+    # - Mystery: 0.5 + 2.5 + 1.0 = 4.0
+    # - Thriller: 2.0 + 1.5 + 1.7 + 1.5 = 6.7
+    # - Science Fiction: 1.0
+    # - Action: 2.5
     # - Crime: 1.0
     # - Drama: 2.0
     #
-    # L2 norm = sqrt(3.5^2 + 3.5^2 + 5.9^2 + 1.0^2 + 2.0^2 + 1.0^2 + 2.0^2)
-    #         = sqrt(12.25 + 12.25 + 34.81 + 1.0 + 4.0 + 1.0 + 4.0) = sqrt(69.31) ≈ 8.3252627
+    # L2 norm = sqrt(4.0^2 + 4.0^2 + 6.7^2 + 1.0^2 + 2.5^2 + 1.0^2 + 2.0^2)
+    #         = sqrt(16.0 + 16.0 + 44.89 + 1.0 + 6.25 + 1.0 + 4.0) = sqrt(89.14) ≈ 9.4413982
     # - Normalized:
-    #   Horror: 3.5 / 8.3252627 ≈ 0.4204
-    #   Mystery: 3.5 / 8.3252627 ≈ 0.4204
-    #   Thriller: 5.9 / 8.3252627 ≈ 0.7087
-    #   Science Fiction: 1.0 / 8.3252627 ≈ 0.1201
-    #   Action: 2.0 / 8.3252627 ≈ 0.2402
-    #   Crime: 1.0 / 8.3252627 ≈ 0.1201
-    #   Drama: 2.0 / 8.3252627 ≈ 0.2402
+    #   Horror: 4.0 / 9.4413982 ≈ 0.4237
+    #   Mystery: 4.0 / 9.4413982 ≈ 0.4237
+    #   Thriller: 6.7 / 9.4413982 ≈ 0.7096
+    #   Science Fiction: 1.0 / 9.4413982 ≈ 0.1059
+    #   Action: 2.5 / 9.4413982 ≈ 0.2648
+    #   Crime: 1.0 / 9.4413982 ≈ 0.1059
+    #   Drama: 2.0 / 9.4413982 ≈ 0.2118
     
     weights_dict = {}
     for prompt, weight in prompts_with_weights:
@@ -92,14 +92,14 @@ def test_vector_normalization_guilty_vs_thriller():
         weights_dict[genre] = weight
 
     # Wyliczamy dokładne oczekiwane wartości
-    norm_guilty = (1.5**2 + 1.3**2 + 1.2**2)**0.5
-    norm_thriller = (3.5**2 + 3.5**2 + 5.9**2 + 1.0**2 + 2.0**2 + 1.0**2 + 2.0**2)**0.5
+    norm_guilty = (2.5**2 + 1.3**2 + 1.2**2)**0.5
+    norm_thriller = (4.0**2 + 4.0**2 + 6.7**2 + 1.0**2 + 2.5**2 + 1.0**2 + 2.0**2)**0.5
 
-    expected_comedy = 1.5 / norm_guilty
+    expected_comedy = 2.5 / norm_guilty
     expected_romance = 1.2 / norm_guilty
-    expected_horror = 3.5 / norm_thriller
-    expected_thriller = 5.9 / norm_thriller
-    expected_action = (1.3 / norm_guilty) + (2.0 / norm_thriller)
+    expected_horror = 4.0 / norm_thriller
+    expected_thriller = 6.7 / norm_thriller
+    expected_action = (1.3 / norm_guilty) + (2.5 / norm_thriller)
     expected_drama = 2.0 / norm_thriller
 
     assert pytest.approx(weights_dict["Comedy"], 0.0001) == expected_comedy

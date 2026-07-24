@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field, EmailStr, model_validator
 from uuid import uuid4, UUID
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VibeType = Literal["PIZZA_CHILL", "MIND_BENDER", "ADRENALINE", "DATE_NIGHT", "DEEP_FEELS", "LAUGH_RIOT", "SPINE_CHILLING", 
-                   "FAMILY_FUN", "INSPIRING", "EPIC_JOURNEY", "GUILTY_PLEASURE", "AMBITIOUS"]
+VibeType = Literal["EXISTENTIAL", "MIND_BENDER", "ADRENALINE", "DATE_NIGHT", "DEEP_FEELS", "LAUGH_RIOT", "SPINE_CHILLING", 
+                   "FAMILY_FUN", "HISTORY_LESSON", "EPIC_JOURNEY", "GUILTY_PLEASURE"]
 
 INTERACTION_STATUSES: list[str] = ["LIKE", "DISLIKE", "LOVE", "NEUTRAL", "HATE", "WATCHED", "WATCHLIST"]
 

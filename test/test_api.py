@@ -68,7 +68,7 @@ def create_session(token: str, user_id: str) -> str:
                 "user_id": str(uuid.uuid4()),
                 "user_name": "Alice",
                 "personal_vibe": {
-                    "vibes": ["AMBITIOUS", "SPINE_CHILLING"],
+                    "vibes": ["EXISTENTIAL", "SPINE_CHILLING"],
                     "hard_nos": [],
                     "max_runtime": 120,
                     "allow_seen": True,
@@ -79,7 +79,7 @@ def create_session(token: str, user_id: str) -> str:
                 "user_id": str(uuid.uuid4()),
                 "user_name": "Bob",
                 "personal_vibe": {
-                    "vibes": ["MIND_BENDER", "AMBITIOUS"],
+                    "vibes": ["MIND_BENDER", "EXISTENTIAL"],
                     "hard_nos": [],
                     "max_runtime": 180,
                     "allow_seen": False,
