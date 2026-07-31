@@ -28,8 +28,8 @@ async def llm_call(user_prompt):
     return response
 
 
-async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: str, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.25, limit_movies: int = 75):
-    top_search = await hybrid_search(query, runtime, session, user_list, allow_seen_dict, hard_nos, rating_weight, limit_movies)
+async def decide(session, query, runtime: int, llm_prompt: str, reranker_query: str, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.25, limit_movies: int = 75, no_anime: bool = False, no_animation: bool = False):
+    top_search = await hybrid_search(query, runtime, session, user_list, allow_seen_dict, hard_nos, rating_weight, limit_movies, no_anime=no_anime, no_animation=no_animation)
     temperature_rerank = await temperature(top_search, limit=40)
     rerank = await reranker(reranker_query, temperature_rerank, limit_movies=30)
     taste_ranked = fusion_ranker(user_list, rerank, limit_movies=20, alpha=0.3)

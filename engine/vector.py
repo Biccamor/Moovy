@@ -38,7 +38,7 @@ async def reranker(prompt, top_movies: list, limit_movies:int = 25):
     return reranked
 
 @observe(as_type="span", name="hybrid search")
-async def hybrid_search(query_vector: list[float], max_runtime: int, session, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.1, limit_movies: int = 100) -> list:
+async def hybrid_search(query_vector: list[float], max_runtime: int, session, user_list, allow_seen_dict: dict | None = None, hard_nos: list[str] | None = None, rating_weight: float = 0.1, limit_movies: int = 100, no_anime: bool = False, no_animation: bool = False) -> list:
     
 
     # HNSW ef_search — wyższy = dokładniejszy ale wolniejszy (default 40, max 1000)
@@ -58,6 +58,12 @@ async def hybrid_search(query_vector: list[float], max_runtime: int, session, us
     if hard_nos:
         for genre in hard_nos:
             statement = statement.where(~cast(Movie.genre, JSONB).contains([genre]))
+
+    if no_animation:
+        statement = statement.where(~cast(Movie.genre, JSONB).contains(['Animation']) & ~cast(Movie.genre, JSONB).contains(['Animacja']))
+
+    if no_anime:
+        statement = statement.where(~cast(Movie.tags, String).ilike('%anime%'))
 
     banned_users = []
     if allow_seen_dict:

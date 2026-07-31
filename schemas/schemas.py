@@ -30,12 +30,16 @@ class Preferences(BaseModel): #podawane przy nowym requescie/sesji
     max_runtime: int = Field(default=120, ge=30, le=240)
     allow_seen: bool = False
     eras: List[str] = Field(default_factory=list, max_length=10)
+    no_anime: bool = False
+    no_animation: bool = False
 
 class SavedPreferences(BaseModel): #jednorazowo podane przy rejestracji
     vibes: List[VibeType] = Field(default_factory=list)
     hard_nos: List[str] = Field(default_factory=list)
     eras: List[str] = Field(default_factory=list)
     movies: List[str] = Field(default_factory=list)
+    no_anime: bool = False
+    no_animation: bool = False
 
 class User(BaseModel):
     email: EmailStr #haslo jest przywiazane do maila nie usera
