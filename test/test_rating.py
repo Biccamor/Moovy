@@ -260,6 +260,56 @@ class TestRateMovie:
 
         assert response.status_code == 200
 
+    # ─── Sukces: camelCase movieId w body JSON ─────────────────────
+
+    @patch("routers.rating_router.select")
+    def test_rate_camelcase_movie_id(self, mock_select, client, mock_db, override_current_user):
+        """movieId (camelCase) w body JSON → 200."""
+        user_id = override_current_user
+        mock_user = _make_mock_user(user_id)
+        mock_movie = _make_mock_movie()
+
+        mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie, None]
+
+        response = client.post("/rating/rate", json={
+            "movieId": str(mock_movie.movie_id),
+            "status": "like",
+        })
+
+        assert response.status_code == 200
+        assert response.json()["status"] == "LIKE"
+
+    # ─── Sukces: rate po ID w ścieżce /rating/rate/{id} ───────────
+
+    @patch("routers.rating_router.select")
+    def test_rate_path_parameter(self, mock_select, client, mock_db, override_current_user):
+        """POST /rating/rate/{target_movie_id} → 200."""
+        user_id = override_current_user
+        mock_user = _make_mock_user(user_id)
+        mock_movie = _make_mock_movie()
+
+        mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie, None]
+
+        response = client.post(f"/rating/rate/{mock_movie.movie_id}")
+
+        assert response.status_code == 200
+
+    # ─── Sukces: watchlist po ID w ścieżce /rating/watchlist/{id} ─
+
+    @patch("routers.rating_router.select")
+    def test_watchlist_path_parameter(self, mock_select, client, mock_db, override_current_user):
+        """POST /rating/watchlist/{target_movie_id} → 200 z opcją WATCHLIST."""
+        user_id = override_current_user
+        mock_user = _make_mock_user(user_id)
+        mock_movie = _make_mock_movie()
+
+        mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie, None]
+
+        response = client.post(f"/rating/watchlist/{mock_movie.movie_id}")
+
+        assert response.status_code == 200
+        assert response.json()["status"] == "WATCHLIST"
+
     # ─── Błąd: nieprawidłowy status ───────────────────────────────
 
     def test_rate_invalid_status(self, client, mock_db, override_current_user):
