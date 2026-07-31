@@ -7,6 +7,8 @@ from scripts.security import get_current_user
 from scripts.dependencies import limiter
 import numpy as np
 
+from uuid import UUID
+
 router = APIRouter(prefix="/rating", tags=["rating"])
 
 # wagi: LOVE/LIKE → taste_positive,  HATE/DISLIKE → taste_negative
@@ -15,8 +17,33 @@ WEIGHTS = {
     "LIKE": ("positive", 0.5),
     "HATE": ("negative", 1.0),
     "DISLIKE": ("negative", 0.5),
-    "WATCHLIST": ("neutral", 0.0)
+    "WATCHLIST": ("neutral", 0.0),
+    "WATCHED": ("neutral", 0.0),
+    "NEUTRAL": ("neutral", 0.0),
 }
+
+
+def _find_movie(session, movie_id_arg) -> Movie | None:
+    """Szuka filmu po movie_id (UUID) lub tmdb_id (int/string)."""
+    if isinstance(movie_id_arg, UUID):
+        return session.exec(select(Movie).where(Movie.movie_id == movie_id_arg)).first()
+    
+    val_str = str(movie_id_arg).strip()
+    try:
+        val_uuid = UUID(val_str)
+        movie = session.exec(select(Movie).where(Movie.movie_id == val_uuid)).first()
+        if movie:
+            return movie
+    except ValueError:
+        pass
+
+    try:
+        tmdb_val = int(val_str)
+        return session.exec(select(Movie).where(Movie.tmdb_id == tmdb_val)).first()
+    except ValueError:
+        pass
+
+    return None
 
 
 def _to_numpy(value) -> np.ndarray:
@@ -89,7 +116,7 @@ def _apply_new_rating(user, embedding, new_status):
         user.negative_count += 1
 
 
-@router.post("/rate", summary="Rate a movie (LOVE / LIKE / DISLIKE / HATE)")
+@router.post("/rate", summary="Rate a movie (LOVE / LIKE / DISLIKE / HATE / WATCHLIST / WATCHED)")
 @limiter.limit("30/minute")
 async def rate_movie(
     request: Request,
@@ -103,9 +130,9 @@ async def rate_movie(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    movie = session.exec(select(Movie).where(Movie.movie_id == data.movie_id)).first()
-    if not movie or movie.embedding is None or len(movie.embedding) == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found or has no embedding")
+    movie = _find_movie(session, data.movie_id)
+    if not movie:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found")
 
     new_status = data.status.upper().strip()
 
@@ -113,22 +140,24 @@ async def rate_movie(
     existing = session.exec(
         select(User_Interaction).where(
             User_Interaction.user_id == user_id,
-            User_Interaction.movie_id == data.movie_id,
+            User_Interaction.movie_id == movie.movie_id,
         )
     ).first()
 
-    # odwróć stary rating jeśli był
-    if existing and existing.status in WEIGHTS:
-        _remove_old_rating(user, movie.embedding, existing.status)
+    # Zaktualizuj wektory usera jeśli film posiada embedding
+    if movie.embedding and len(movie.embedding) > 0:
+        # odwróć stary rating jeśli był
+        if existing and existing.status in WEIGHTS:
+            _remove_old_rating(user, movie.embedding, existing.status)
 
-    # zastosuj nowy rating
-    _apply_new_rating(user, movie.embedding, new_status)
+        # zastosuj nowy rating
+        _apply_new_rating(user, movie.embedding, new_status)
 
     # upsert interaction
     if existing:
         existing.status = new_status
     else:
-        session.add(User_Interaction(user_id=user_id, movie_id=data.movie_id, status=new_status))
+        session.add(User_Interaction(user_id=user_id, movie_id=movie.movie_id, status=new_status))
 
     session.add(user)
     session.commit()
@@ -150,21 +179,21 @@ async def unrate_movie(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    movie = session.exec(select(Movie).where(Movie.movie_id == data.movie_id)).first()
+    movie = _find_movie(session, data.movie_id)
     if not movie:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found")
 
     existing = session.exec(
         select(User_Interaction).where(
             User_Interaction.user_id == user_id,
-            User_Interaction.movie_id == data.movie_id,
+            User_Interaction.movie_id == movie.movie_id,
         )
     ).first()
     if not existing:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No rating found for this movie")
 
-    # odwróć wpływ na wektor
-    if existing.status in WEIGHTS and movie.embedding:
+    # odwróć wpływ na wektor jeśli film ma embedding
+    if existing.status in WEIGHTS and movie.embedding and len(movie.embedding) > 0:
         _remove_old_rating(user, movie.embedding, existing.status)
 
     session.delete(existing)

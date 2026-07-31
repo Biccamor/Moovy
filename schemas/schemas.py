@@ -1,6 +1,6 @@
 from typing import Self, List, Literal, Optional
 
-from pydantic import BaseModel, Field, EmailStr, model_validator
+from pydantic import BaseModel, Field, EmailStr, model_validator, field_validator
 from uuid import uuid4, UUID
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,12 +11,17 @@ INTERACTION_STATUSES: list[str] = ["LIKE", "DISLIKE", "LOVE", "NEUTRAL", "HATE",
 
 class RateRequest(BaseModel):
     """Request body for rating a movie."""
-    movie_id: UUID
-    status: str = Field(
-        ...,
-        description="Rating status: LOVE, LIKE, DISLIKE, or HATE",
-        pattern="^(LOVE|LIKE|DISLIKE|HATE|WATCHED|WATCHLIST)$",
-    )
+    movie_id: UUID | str | int
+    status: str
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def normalize_status(cls, v: str) -> str:
+        if isinstance(v, str):
+            v = v.upper().strip()
+        if v not in INTERACTION_STATUSES:
+            raise ValueError(f"Invalid status '{v}'. Must be one of: {INTERACTION_STATUSES}")
+        return v
 
 
 class Preferences(BaseModel): #podawane przy nowym requescie/sesji
@@ -90,8 +95,8 @@ class Settings(BaseSettings):
     database_url: str
     secret_key: str
     algorithm: str
-    access_token_expire: int = 25          # minuty
-    refresh_token_expire_days: int = 7     # dni
+    access_token_expire: int = 60          # minuty (domyślnie 60 min)
+    refresh_token_expire_days: int = 14     # dni (domyślnie 14 dni / 2 tygodnie)
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
