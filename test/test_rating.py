@@ -202,25 +202,63 @@ class TestRateMovie:
         assert response.status_code == 404
         assert "Movie not found" in response.json()["detail"]
 
-    # ─── Błąd: film bez embeddingu ────────────────────────────────
+    # ─── Sukces: film bez embeddingu ──────────────────────────────
 
     @patch("routers.rating_router.select")
     def test_rate_movie_no_embedding(self, mock_select,
                                       client, mock_db, override_current_user):
-        """Film bez embeddingu → 404."""
+        """Film bez embeddingu → 200 (zapisuje interakcję, pomija update wektora)."""
         user_id = override_current_user
         mock_user = _make_mock_user(user_id)
         mock_movie = _make_mock_movie(embedding=None)
         mock_movie.embedding = None  # jawnie brak
 
-        mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie]
+        mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie, None]
 
         response = client.post("/rating/rate", json={
             "movie_id": str(mock_movie.movie_id),
             "status": "LOVE",
         })
 
-        assert response.status_code == 404
+        assert response.status_code == 200
+
+    # ─── Sukces: status pisany małymi literami (np. 'like', 'watchlist') ──────
+
+    @patch("routers.rating_router.select")
+    def test_rate_lowercase_status(self, mock_select, client, mock_db, override_current_user):
+        """Status w małych literach ('watchlist') → automatycznie podnoszony do wielkich (200)."""
+        user_id = override_current_user
+        mock_user = _make_mock_user(user_id)
+        mock_movie = _make_mock_movie()
+
+        mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie, None]
+
+        response = client.post("/rating/rate", json={
+            "movie_id": str(mock_movie.movie_id),
+            "status": "watchlist",
+        })
+
+        assert response.status_code == 200
+        assert response.json()["status"] == "WATCHLIST"
+
+    # ─── Sukces: przekazanie movie_id jako tmdb_id (int) ──────────
+
+    @patch("routers.rating_router.select")
+    def test_rate_by_tmdb_id(self, mock_select, client, mock_db, override_current_user):
+        """movie_id jako integer tmdb_id → wyszukiwanie po tmdb_id i sukces (200)."""
+        user_id = override_current_user
+        mock_user = _make_mock_user(user_id)
+        mock_movie = _make_mock_movie()
+        mock_movie.tmdb_id = 550
+
+        mock_db.exec.return_value.first.side_effect = [mock_user, mock_movie, None]
+
+        response = client.post("/rating/rate", json={
+            "movie_id": 550,
+            "status": "LOVE",
+        })
+
+        assert response.status_code == 200
 
     # ─── Błąd: nieprawidłowy status ───────────────────────────────
 
