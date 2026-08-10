@@ -8,6 +8,9 @@ from scripts.dependencies import limiter
 import numpy as np
 from uuid import UUID
 from typing import Optional, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/rating", tags=["rating"])
 
@@ -147,18 +150,30 @@ def _execute_rate(session, user_token: dict, movie_id_arg: Any, status_str: str)
     if existing and existing.status == new_status:
         return {"status": new_status, "positive_count": user.positive_count, "negative_count": user.negative_count}
 
-    if movie.embedding and len(movie.embedding) > 0:
-        if existing and existing.status in WEIGHTS:
-            _remove_old_rating(user, movie.embedding, existing.status)
-        _apply_new_rating(user, movie.embedding, new_status)
+    try:
+        if movie.embedding and len(movie.embedding) > 0:
+            if existing and existing.status in WEIGHTS:
+                _remove_old_rating(user, movie.embedding, existing.status)
+            _apply_new_rating(user, movie.embedding, new_status)
+    except Exception as e:
+        logger.error(f"[RATING] Taste vector update failed for user={user_id}, movie={movie.movie_id}, "
+                     f"new_status={new_status}, error={e}", exc_info=True)
+        # Kontynuujemy — zapisujemy sam status interakcji nawet jeśli taste vector się nie zaktualizował
 
-    if existing:
-        existing.status = new_status
-    else:
-        session.add(User_Interaction(user_id=user_id, movie_id=movie.movie_id, status=new_status))
+    try:
+        if existing:
+            existing.status = new_status
+        else:
+            session.add(User_Interaction(user_id=user_id, movie_id=movie.movie_id, status=new_status))
 
-    session.add(user)
-    session.commit()
+        session.add(user)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        logger.error(f"[RATING] DB commit failed for user={user_id}, movie={movie.movie_id}, "
+                     f"new_status={new_status}, error={e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Rating save failed: {e}")
 
     return {"status": new_status, "positive_count": user.positive_count, "negative_count": user.negative_count}
 
@@ -187,12 +202,21 @@ def _execute_unrate(session, user_token: dict, movie_id_arg: Any) -> dict:
     if not existing:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No rating found for this movie")
 
-    if existing.status in WEIGHTS and movie.embedding and len(movie.embedding) > 0:
-        _remove_old_rating(user, movie.embedding, existing.status)
+    try:
+        if existing.status in WEIGHTS and movie.embedding and len(movie.embedding) > 0:
+            _remove_old_rating(user, movie.embedding, existing.status)
+    except Exception as e:
+        logger.error(f"[UNRATE] Taste vector reversal failed for user={user_id}, movie={movie.movie_id}, error={e}", exc_info=True)
 
-    session.delete(existing)
-    session.add(user)
-    session.commit()
+    try:
+        session.delete(existing)
+        session.add(user)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        logger.error(f"[UNRATE] DB commit failed for user={user_id}, movie={movie.movie_id}, error={e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Unrate failed: {e}")
 
     return {"message": "Rating removed", "positive_count": user.positive_count, "negative_count": user.negative_count}
 
