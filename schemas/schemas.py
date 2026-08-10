@@ -1,6 +1,5 @@
-from typing import Self, List, Literal, Optional
-
-from pydantic import BaseModel, Field, EmailStr, model_validator, field_validator
+from typing import Self, List, Literal, Optional, Any
+from pydantic import BaseModel, Field, EmailStr, model_validator, field_validator, AliasChoices
 from uuid import uuid4, UUID
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,14 +10,24 @@ INTERACTION_STATUSES: list[str] = ["LIKE", "DISLIKE", "LOVE", "NEUTRAL", "HATE",
 
 class RateRequest(BaseModel):
     """Request body for rating a movie."""
-    movie_id: UUID | str | int
-    status: str
+    movie_id: Optional[UUID | str | int] = Field(
+        default=None,
+        validation_alias=AliasChoices('movie_id', 'movieId', 'tmdb_id', 'tmdbId', 'id')
+    )
+    status: Optional[str] = Field(
+        default="LIKE",
+        validation_alias=AliasChoices('status', 'rating', 'action', 'type')
+    )
 
     @field_validator("status", mode="before")
     @classmethod
-    def normalize_status(cls, v: str) -> str:
+    def normalize_status(cls, v: Any) -> str:
+        if v is None:
+            return "LIKE"
         if isinstance(v, str):
             v = v.upper().strip()
+        else:
+            v = str(v).upper().strip()
         if v not in INTERACTION_STATUSES:
             raise ValueError(f"Invalid status '{v}'. Must be one of: {INTERACTION_STATUSES}")
         return v

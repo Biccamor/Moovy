@@ -85,7 +85,7 @@ async def hybrid_search(query_vector: list[float], max_runtime: int, session, us
     ]
 
 @observe(as_type="span", name="temperature")
-async def temperature(top_movies, limit: int = 40, temp: float = 0.8):
+async def temperature(top_movies, limit: int = 40, temp: float = 1.1):
     if not top_movies: return []
 
     scores = np.array([m["score"] for m in top_movies])

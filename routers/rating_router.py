@@ -6,8 +6,8 @@ from schemas.schemas import RateRequest
 from scripts.security import get_current_user
 from scripts.dependencies import limiter
 import numpy as np
-
 from uuid import UUID
+from typing import Optional, Any
 
 router = APIRouter(prefix="/rating", tags=["rating"])
 
@@ -25,6 +25,9 @@ WEIGHTS = {
 
 def _find_movie(session, movie_id_arg) -> Movie | None:
     """Szuka filmu po movie_id (UUID) lub tmdb_id (int/string)."""
+    if movie_id_arg is None:
+        return None
+
     if isinstance(movie_id_arg, UUID):
         return session.exec(select(Movie).where(Movie.movie_id == movie_id_arg)).first()
     
@@ -116,27 +119,23 @@ def _apply_new_rating(user, embedding, new_status):
         user.negative_count += 1
 
 
-@router.post("/rate", summary="Rate a movie (LOVE / LIKE / DISLIKE / HATE / WATCHLIST / WATCHED)")
-@limiter.limit("30/minute")
-async def rate_movie(
-    request: Request,
-    data: RateRequest,
-    user_token: dict = Depends(get_current_user),
-    session=Depends(get_session),
-):
-    user_id = user_token["user_id"]
+def _execute_rate(session, user_token: dict, movie_id_arg: Any, status_str: str) -> dict:
+    user_id_raw = user_token["user_id"]
+    user_id = UUID(str(user_id_raw)) if not isinstance(user_id_raw, UUID) else user_id_raw
 
     user = session.exec(select(User).where(User.user_id == user_id)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    movie = _find_movie(session, data.movie_id)
+    if movie_id_arg is None:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Missing movie_id")
+
+    movie = _find_movie(session, movie_id_arg)
     if not movie:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found")
 
-    new_status = data.status.upper().strip()
+    new_status = status_str.upper().strip()
 
-    # sprawdź czy już istnieje interaction
     existing = session.exec(
         select(User_Interaction).where(
             User_Interaction.user_id == user_id,
@@ -144,16 +143,15 @@ async def rate_movie(
         )
     ).first()
 
-    # Zaktualizuj wektory usera jeśli film posiada embedding
+    # Idempotentność — jeśli status się nie zmienia, nie ruszamy taste vectora ani bazy
+    if existing and existing.status == new_status:
+        return {"status": new_status, "positive_count": user.positive_count, "negative_count": user.negative_count}
+
     if movie.embedding and len(movie.embedding) > 0:
-        # odwróć stary rating jeśli był
         if existing and existing.status in WEIGHTS:
             _remove_old_rating(user, movie.embedding, existing.status)
-
-        # zastosuj nowy rating
         _apply_new_rating(user, movie.embedding, new_status)
 
-    # upsert interaction
     if existing:
         existing.status = new_status
     else:
@@ -165,21 +163,18 @@ async def rate_movie(
     return {"status": new_status, "positive_count": user.positive_count, "negative_count": user.negative_count}
 
 
-@router.delete("/rate", summary="Remove a movie rating")
-@limiter.limit("30/minute")
-async def unrate_movie(
-    request: Request,
-    data: RateRequest,
-    user_token: dict = Depends(get_current_user),
-    session=Depends(get_session),
-):
-    user_id = user_token["user_id"]
+def _execute_unrate(session, user_token: dict, movie_id_arg: Any) -> dict:
+    user_id_raw = user_token["user_id"]
+    user_id = UUID(str(user_id_raw)) if not isinstance(user_id_raw, UUID) else user_id_raw
 
     user = session.exec(select(User).where(User.user_id == user_id)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    movie = _find_movie(session, data.movie_id)
+    if movie_id_arg is None:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Missing movie_id")
+
+    movie = _find_movie(session, movie_id_arg)
     if not movie:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found")
 
@@ -192,7 +187,6 @@ async def unrate_movie(
     if not existing:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No rating found for this movie")
 
-    # odwróć wpływ na wektor jeśli film ma embedding
     if existing.status in WEIGHTS and movie.embedding and len(movie.embedding) > 0:
         _remove_old_rating(user, movie.embedding, existing.status)
 
@@ -203,6 +197,138 @@ async def unrate_movie(
     return {"message": "Rating removed", "positive_count": user.positive_count, "negative_count": user.negative_count}
 
 
+# ─── Endpointy POST rate & warianty ─────────────────────────────────
+
+@router.post("/rate", summary="Rate a movie")
+@limiter.limit("30/minute")
+async def rate_movie(
+    request: Request,
+    data: RateRequest,
+    user_token: dict = Depends(get_current_user),
+    session=Depends(get_session),
+):
+    return _execute_rate(session, user_token, data.movie_id, data.status or "LIKE")
+
+
+@router.post("/rate/{target_movie_id}", summary="Rate a movie by path ID")
+@limiter.limit("30/minute")
+async def rate_movie_by_path(
+    request: Request,
+    target_movie_id: str,
+    data: Optional[RateRequest] = None,
+    user_token: dict = Depends(get_current_user),
+    session=Depends(get_session),
+):
+    status_str = data.status if (data and data.status) else "LIKE"
+    return _execute_rate(session, user_token, target_movie_id, status_str)
+
+
+@router.post("/rate/{target_movie_id}/{target_status}", summary="Rate a movie by path ID and status")
+@limiter.limit("30/minute")
+async def rate_movie_by_path_status(
+    request: Request,
+    target_movie_id: str,
+    target_status: str,
+    user_token: dict = Depends(get_current_user),
+    session=Depends(get_session),
+):
+    return _execute_rate(session, user_token, target_movie_id, target_status)
+
+
+@router.post("/watchlist", summary="Add movie to watchlist")
+@limiter.limit("30/minute")
+async def add_watchlist(
+    request: Request,
+    data: Optional[RateRequest] = None,
+    user_token: dict = Depends(get_current_user),
+    session=Depends(get_session),
+):
+    movie_id = data.movie_id if data else None
+    return _execute_rate(session, user_token, movie_id, "WATCHLIST")
+
+
+@router.post("/watchlist/{target_movie_id}", summary="Add movie to watchlist by path ID")
+@limiter.limit("30/minute")
+async def add_watchlist_by_path(
+    request: Request,
+    target_movie_id: str,
+    user_token: dict = Depends(get_current_user),
+    session=Depends(get_session),
+):
+    return _execute_rate(session, user_token, target_movie_id, "WATCHLIST")
+
+
+@router.delete("/watchlist/{target_movie_id}", summary="Remove movie from watchlist by path ID")
+@limiter.limit("30/minute")
+async def delete_watchlist_by_path(
+    request: Request,
+    target_movie_id: str,
+    user_token: dict = Depends(get_current_user),
+    session=Depends(get_session),
+):
+    return _execute_unrate(session, user_token, target_movie_id)
+
+
+# Shortcut endpoints for specific actions by ID
+@router.post("/like/{target_movie_id}", summary="Like a movie")
+@limiter.limit("30/minute")
+async def like_movie_path(request: Request, target_movie_id: str, user_token: dict = Depends(get_current_user), session=Depends(get_session)):
+    return _execute_rate(session, user_token, target_movie_id, "LIKE")
+
+@router.post("/dislike/{target_movie_id}", summary="Dislike a movie")
+@limiter.limit("30/minute")
+async def dislike_movie_path(request: Request, target_movie_id: str, user_token: dict = Depends(get_current_user), session=Depends(get_session)):
+    return _execute_rate(session, user_token, target_movie_id, "DISLIKE")
+
+@router.post("/love/{target_movie_id}", summary="Love a movie")
+@limiter.limit("30/minute")
+async def love_movie_path(request: Request, target_movie_id: str, user_token: dict = Depends(get_current_user), session=Depends(get_session)):
+    return _execute_rate(session, user_token, target_movie_id, "LOVE")
+
+@router.post("/hate/{target_movie_id}", summary="Hate a movie")
+@limiter.limit("30/minute")
+async def hate_movie_path(request: Request, target_movie_id: str, user_token: dict = Depends(get_current_user), session=Depends(get_session)):
+    return _execute_rate(session, user_token, target_movie_id, "HATE")
+
+
+# ─── Endpointy DELETE rate & warianty ───────────────────────────────
+
+@router.delete("/rate", summary="Remove a movie rating")
+@limiter.limit("30/minute")
+async def unrate_movie(
+    request: Request,
+    data: RateRequest,
+    user_token: dict = Depends(get_current_user),
+    session=Depends(get_session),
+):
+    return _execute_unrate(session, user_token, data.movie_id)
+
+
+@router.delete("/rate/{target_movie_id}", summary="Remove a movie rating by path ID")
+@limiter.limit("30/minute")
+async def unrate_movie_by_path(
+    request: Request,
+    target_movie_id: str,
+    user_token: dict = Depends(get_current_user),
+    session=Depends(get_session),
+):
+    return _execute_unrate(session, user_token, target_movie_id)
+
+
+@router.post("/delete", summary="Remove a movie rating (POST alternative)")
+@router.delete("/delete", summary="Remove a movie rating")
+@limiter.limit("30/minute")
+async def delete_rating(
+    request: Request,
+    data: RateRequest,
+    user_token: dict = Depends(get_current_user),
+    session=Depends(get_session),
+):
+    return _execute_unrate(session, user_token, data.movie_id)
+
+
+# ─── Endpointy GET ──────────────────────────────────────────────────
+
 @router.get("/history", summary="Get user's rating history")
 @limiter.limit("30/minute")
 async def get_rating_history(
@@ -210,7 +336,8 @@ async def get_rating_history(
     user_token: dict = Depends(get_current_user),
     session=Depends(get_session),
 ):
-    user_id = user_token["user_id"]
+    user_id_raw = user_token["user_id"]
+    user_id = UUID(str(user_id_raw)) if not isinstance(user_id_raw, UUID) else user_id_raw
 
     results = session.exec(
         select(User_Interaction, Movie)
@@ -235,7 +362,8 @@ async def get_watchlist(
     user_token: dict = Depends(get_current_user),
     session=Depends(get_session),
 ):
-    user_id = user_token["user_id"]
+    user_id_raw = user_token["user_id"]
+    user_id = UUID(str(user_id_raw)) if not isinstance(user_id_raw, UUID) else user_id_raw
 
     results = session.exec(
         select(User_Interaction, Movie)

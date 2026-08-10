@@ -38,14 +38,14 @@ app = FastAPI(lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore
 origins = [
-    "https://groupmovie.com",
+    "http://34.118.42.82:8010"
     "http://localhost",
     "http://localhost:8080",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  #TODO: zmienic przed deployem ale do testow zostawic
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
