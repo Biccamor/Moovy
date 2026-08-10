@@ -26,8 +26,8 @@ jobs:
         touch .env 
         echo secret_key="tajny_klucz_do_testow" >> .env
         echo algorithm="HS256" >> .env
-        echo access_token_expire=60 >> .env
-        echo refresh_token_expire_days=14 >> .env
+        echo access_token_expire=10 >> .env
+        echo refresh_token_expire_days=10 >> .env
         echo DATABASE_URL="postgresql" >> .env
         echo DATABASE_URL_LOCAL="postgre.local" >> .env
         echo BEARER_TOKEN="testy123testy123" >> .env
@@ -41,9 +41,8 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Start Services with Docker Build
-      run: docker compose build --build-arg BUILDKIT_INLINE_CACHE=1 app
+      run: docker compose build app
       env:
-        COMPOSE_DOCKER_CLI_BUILD: 1
         DOCKER_BUILDKIT: 1
 
     - name: Start Services
