@@ -15,6 +15,8 @@ def create_tables():
         ))
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
         conn.execute(text("CREATE INDEX IF NOT EXISTS idx_movie_title_trgm ON movie USING GIN (title gin_trgm_ops);"))
+        conn.execute(text("ALTER TABLE app_user ADD COLUMN IF NOT EXISTS nickname VARCHAR(30) DEFAULT NULL;"))
+        conn.execute(text("ALTER TABLE app_user ADD COLUMN IF NOT EXISTS profile_picture TEXT DEFAULT NULL;"))
         conn.commit()
 
 

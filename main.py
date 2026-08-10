@@ -37,8 +37,16 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    from fastapi.responses import JSONResponse
+    logger.error(f"Unhandled exception on {request.method} {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(status_code=500, content={"detail": f"Internal Server Error: {type(exc).__name__}: {exc}"})
+
 origins = [
-    "http://34.118.42.82:8010"
+    "https://groupmovie.com",
+    "https://www.groupmovie.com",
     "http://localhost",
     "http://localhost:8080",
 ]
