@@ -32,7 +32,7 @@ def verify_password(hashed_password: str, password: str) -> bool:
         return False
 
 def signJWT(user_id: str) -> dict:
-    """Tworzy krótkożyjący access token (domyślnie 25 min) i długożyjący refresh token (domyślnie 7 dni)."""
+    """Tworzy access token (domyślnie 60 min) i długożyjący refresh token (domyślnie 14 dni)."""
     now = datetime.datetime.now(datetime.timezone.utc)
 
     access_payload = {

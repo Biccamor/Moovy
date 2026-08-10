@@ -143,6 +143,10 @@ def _execute_rate(session, user_token: dict, movie_id_arg: Any, status_str: str)
         )
     ).first()
 
+    # Idempotentność — jeśli status się nie zmienia, nie ruszamy taste vectora ani bazy
+    if existing and existing.status == new_status:
+        return {"status": new_status, "positive_count": user.positive_count, "negative_count": user.negative_count}
+
     if movie.embedding and len(movie.embedding) > 0:
         if existing and existing.status in WEIGHTS:
             _remove_old_rating(user, movie.embedding, existing.status)

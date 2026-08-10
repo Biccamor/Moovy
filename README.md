@@ -135,7 +135,8 @@ DATABASE_URL=postgresql://user:password@db:5432/movienight
 GROQ_API_KEY=your-groq-api-key
 SECRET_KEY=your-secret-key
 ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE=25
+ACCESS_TOKEN_EXPIRE=60
+REFRESH_TOKEN_EXPIRE_DAYS=14
 # Langfuse config (Optional but recommended)
 LANGFUSE_PUBLIC_KEY=pk-lf-...
 LANGFUSE_SECRET_KEY=sk-lf-...

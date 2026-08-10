@@ -212,5 +212,5 @@ class RecomService:
         user_ids = [UUID(uid) for uid in (db_session.users_in_session or [])]
         user_list = session.exec(select(User).where(User.user_id.in_(user_ids))).all() if user_ids else []
 
-        recommendations = await decide(session, vector, max_runtime, users_info, reranker_query, user_list=user_list, allow_seen_dict=db_session.allow_seen, hard_nos=list(all_hard_nos), limit_movies=100, no_anime=no_anime, no_animation=no_animation)
+        recommendations = await decide(session, vector, max_runtime, users_info, reranker_query, user_list=user_list, allow_seen_dict=db_session.allow_seen, hard_nos=list(all_hard_nos), limit_movies=120, no_anime=no_anime, no_animation=no_animation)
         return recommendations
