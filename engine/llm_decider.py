@@ -15,7 +15,7 @@ client = AsyncOpenAI(base_url="https://api.groq.com/openai/v1", api_key=os.geten
 
 async def llm_call(user_prompt):
     response = await client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": AGENT_SYSTEM_PROMPT},
             {"role": "user",   "content": user_prompt},
@@ -23,8 +23,11 @@ async def llm_call(user_prompt):
         temperature=0.25,
         top_p=0.9,
         response_format={"type": "json_object"},
+        extra_body={
+            "reasoning_effort": "low",
+            "reasoning_format": "hidden",
+        },
     )
-
     return response
 
 
