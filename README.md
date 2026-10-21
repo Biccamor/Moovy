@@ -1,4 +1,4 @@
-# MovieNight — AI-Powered Group Movie Recommendation Engine
+# Moovy — AI-Powered Group Movie Recommendation Engine
 
 MovieNight is a backend API that solves a surprisingly hard problem: finding a movie that an entire group actually wants to watch. It aggregates individual preferences, mood signals, and constraints from multiple users into a single intelligent recommendation session powered by semantic search and the Groq inference API.
 
